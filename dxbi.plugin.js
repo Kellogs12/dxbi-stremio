@@ -9377,7 +9377,7 @@
   // only, which checks it with Stremio and never keeps it. The parental PIN stays on each device.
   // ---------------------------------------------------------------------------
 
-  const SYNC_ENDPOINT = (typeof settings !== "undefined" && settings.syncEndpoint) || "";
+  const SYNC_ENDPOINT = (typeof settings !== "undefined" && settings.syncEndpoint !== undefined) ? settings.syncEndpoint : "https://dxbi-sync.dxbialt.workers.dev/sync";
   const SYNCED = /^(viewers|libraryOwners|kidsAllow|(homeLayout|hidden|cwDismissed|progress):[\w-]{1,40})$/;
   const SYNC_MAX_VALUE = 100 * 1024;
 
@@ -9463,6 +9463,7 @@
     // Nothing leaves a device with a single viewer: there's nothing to keep apart. (Unless it's down to
     // one because a viewer was removed: the other devices have to hear of that.)
     on() {
+      if (typeof SYNC_ENDPOINT !== "undefined" && !SYNC_ENDPOINT) return false;
       const v = viewers.list();
       return settings.profileSync !== false && (v.list.length > 1 || !!(v.removed && v.removed.length));
     },
@@ -9515,7 +9516,7 @@
       this.busy = true;
       this.lastTry = Date.now();
       try {
-        if (!SYNC_ENDPOINT) { this.busy = false; return; }
+        if (!SYNC_ENDPOINT) { this.busy = false; this.dirty.clear(); this.firstDirty = 0; return; }
         const previous = this.local("dxbi.syncAccount");
         if (previous && previous !== auth.id) {
           this.switchAccount();

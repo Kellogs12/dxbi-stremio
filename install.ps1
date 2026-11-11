@@ -1,9 +1,9 @@
 # dx.bi installer for Stremio Enhanced (Windows)
-#   irm https://github.com/notdxbi/dxbi-stremio/releases/latest/download/install.ps1 | iex
+#   irm https://raw.githubusercontent.com/Kellogs12/dxbi-stremio/main/install.ps1 | iex
 $ErrorActionPreference = 'Stop'
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-$baseUrl = if ($env:DXBI_BASE_URL) { $env:DXBI_BASE_URL } else { 'https://github.com/Kellogs12/dxbi-stremio/releases/latest/download' }
+$baseUrl = if ($env:DXBI_BASE_URL) { $env:DXBI_BASE_URL } else { 'https://raw.githubusercontent.com/Kellogs12/dxbi-stremio/main' }
 $data = Join-Path $env:APPDATA 'stremio-enhanced'
 
 Write-Host "DX.BI - installing into: $data" -ForegroundColor White
