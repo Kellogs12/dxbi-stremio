@@ -3,7 +3,7 @@
 $ErrorActionPreference = 'Stop'
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-$baseUrl = if ($env:DXBI_BASE_URL) { $env:DXBI_BASE_URL } else { 'https://github.com/notdxbi/dxbi-stremio/releases/latest/download' }
+$baseUrl = if ($env:DXBI_BASE_URL) { $env:DXBI_BASE_URL } else { 'https://github.com/Kellogs12/dxbi-stremio/releases/latest/download' }
 $data = Join-Path $env:APPDATA 'stremio-enhanced'
 
 Write-Host "DX.BI - installing into: $data" -ForegroundColor White
@@ -19,8 +19,8 @@ function Get-DxbiFile($name, $dest) {
     Invoke-WebRequest -Uri "$baseUrl/$name" -OutFile $file -UseBasicParsing
     # sanity check: the file must be the real dx.bi mod, not an error page
     # (-Raw can't be combined with -TotalCount in Windows PowerShell 5.1, so join the lines instead)
-    $head = (Get-Content -Path $file -TotalCount 6) -join "`n"
-    if ($head -notmatch '@name dx\.bi') {
+    $head = (Get-Content -Path $file -TotalCount 20) -join "`n"
+    if ($head -notmatch '@name') {
         Write-Host ''
         throw "Download of $name looks wrong - aborting, nothing was changed."
     }

@@ -3,7 +3,7 @@
  * @description Netflix-style Stremio: billboard, carousels and hover previews, reviews and ratings, skip intro and up next, a better player, watch parties and more. The dx.bi look is built in.
  * @version 2.35.1
  * @author dx.bi
- * @updateUrl https://raw.githubusercontent.com/notdxbi/dxbi-stremio/main/dxbi.plugin.js
+ * @updateUrl https://raw.githubusercontent.com/Kellogs12/dxbi-stremio/main/dxbi.plugin.js
  */
 // dx.bi — Copyright (C) 2026 dx.bi. Free software under the GNU General Public License, version 3
 // or later (see LICENSE and NOTICE.md at github.com/notdxbi/dxbi-stremio). Versions up to 2.15.9: MIT.
@@ -9377,7 +9377,7 @@
   // only, which checks it with Stremio and never keeps it. The parental PIN stays on each device.
   // ---------------------------------------------------------------------------
 
-  const SYNC_ENDPOINT = "https://dxbi-sync.dxbialt.workers.dev/sync";
+  const SYNC_ENDPOINT = (typeof settings !== "undefined" && settings.syncEndpoint) || "";
   const SYNCED = /^(viewers|libraryOwners|kidsAllow|(homeLayout|hidden|cwDismissed|progress):[\w-]{1,40})$/;
   const SYNC_MAX_VALUE = 100 * 1024;
 
@@ -9515,6 +9515,7 @@
       this.busy = true;
       this.lastTry = Date.now();
       try {
+        if (!SYNC_ENDPOINT) { this.busy = false; return; }
         const previous = this.local("dxbi.syncAccount");
         if (previous && previous !== auth.id) {
           this.switchAccount();
@@ -10745,7 +10746,7 @@
 
   // Reports go to dx.bi's relay (tools/report-relay, a Cloudflare Worker), which checks them and posts
   // them to a private Discord channel. The channel's webhook is the relay's secret, not in this code.
-  const REPORT_ENDPOINT = "https://dxbi-reports.dxbialt.workers.dev/report";
+  const REPORT_ENDPOINT = (typeof settings !== "undefined" && settings.reportEndpoint) || "";
 
   function redact(text) {
     return String(text == null ? "" : text)

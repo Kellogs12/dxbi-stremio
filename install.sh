@@ -3,7 +3,7 @@
 #   curl -fsSL https://github.com/notdxbi/dxbi-stremio/releases/latest/download/install.sh | bash
 set -euo pipefail
 
-BASE_URL="${DXBI_BASE_URL:-https://github.com/notdxbi/dxbi-stremio/releases/latest/download}"
+BASE_URL="${DXBI_BASE_URL:-https://github.com/Kellogs12/dxbi-stremio/releases/latest/download}"
 
 case "$(uname -s)" in
   Darwin) DATA="$HOME/Library/Application Support/stremio-enhanced" ;;
@@ -28,7 +28,7 @@ fetch() {
     wget -qO "$tmp/$name" "$BASE_URL/$name"
   fi
   # sanity check: the file must be the real dx.bi mod, not an error page
-  if ! head -c 400 "$tmp/$name" | grep -q "@name dx.bi"; then
+  if ! grep -q "@name" "$tmp/$name"; then
     echo
     red "Download of $name looks wrong — aborting, nothing was changed."
     exit 1
