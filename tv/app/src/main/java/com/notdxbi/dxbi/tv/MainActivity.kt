@@ -63,6 +63,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        window.addFlags(WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED)
         hideSystemBars()
 
         if (!webViewIsRecentEnough()) return
@@ -70,6 +71,7 @@ class MainActivity : AppCompatActivity() {
         // Debug builds can be inspected from a computer (chrome://inspect)
         if (applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE != 0) WebView.setWebContentsDebuggingEnabled(true)
         web = WebView(this)
+        web.setLayerType(View.LAYER_TYPE_HARDWARE, null)
         val root = FrameLayout(this)
         root.addView(web, webSize())
         setContentView(root)
@@ -89,9 +91,11 @@ class MainActivity : AppCompatActivity() {
             loadWithOverviewMode = true
             setSupportZoom(false)
             builtInZoomControls = false
-            // A desktop browser's identity (Stremio's web app is made for one), plus dx.bi TV's mark
+            offscreenPreRaster = true
+            cacheMode = WebSettings.LOAD_DEFAULT
+            // A desktop browser's identity (Stremio's web app is made for one), plus Hank TV's mark
             userAgentString = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) " +
-                "Chrome/${chromeVersion()} Safari/537.36 dxbi-tv/${BuildConfigVersion.name(this@MainActivity)}"
+                "Chrome/${chromeVersion()} Safari/537.36 hank-tv/${BuildConfigVersion.name(this@MainActivity)} dxbi-tv/${BuildConfigVersion.name(this@MainActivity)}"
         }
         CookieManager.getInstance().setAcceptThirdPartyCookies(web, true)
 

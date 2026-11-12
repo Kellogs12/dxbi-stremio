@@ -33,6 +33,7 @@ import androidx.media3.common.Tracks
 import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.okhttp.OkHttpDataSource
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.Renderer
@@ -43,6 +44,7 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.ui.CaptionStyleCompat
 import androidx.media3.ui.PlayerView
 import androidx.media3.ui.SubtitleView
+import okhttp3.ConnectionPool
 import okhttp3.OkHttpClient
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
@@ -246,15 +248,18 @@ class PlayerActivity : AppCompatActivity() {
         val headers = mutableMapOf<String, String>()
         stream.optJSONObject("headers")?.let { h -> h.keys().forEach { k -> headers[k] = h.optString(k) } }
         val http = OkHttpClient.Builder()
-            .connectTimeout(20, TimeUnit.SECONDS)
+            .connectTimeout(15, TimeUnit.SECONDS)
             // a torrent's first bytes wait for its details and first pieces to come from peers
-            .readTimeout(if (torrent) 150L else 30L, TimeUnit.SECONDS)
+            .readTimeout(if (torrent) 120L else 30L, TimeUnit.SECONDS)
             .followRedirects(true)
+            .followSslRedirects(true)
+            .retryOnConnectionFailure(true)
+            .connectionPool(ConnectionPool(8, 2, TimeUnit.MINUTES))
             .build()
         // (an addon's own User-Agent replaces ours: Media3 would send both)
         val ownAgent = headers.keys.any { it.equals("User-Agent", ignoreCase = true) }
         val online = OkHttpDataSource.Factory(http)
-            .setUserAgent(if (ownAgent) null else "dxbi-tv/${BuildConfigVersion.name(this)}")
+            .setUserAgent(if (ownAgent) null else "hank-tv/${BuildConfigVersion.name(this)} dxbi-tv/${BuildConfigVersion.name(this)}")
             .setDefaultRequestProperties(headers)
         val dataSource = extras?.dataSource(online) ?: online
 
@@ -263,8 +268,22 @@ class PlayerActivity : AppCompatActivity() {
             .setEnableDecoderFallback(true)
             .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
 
+        // Low-memory TV devices (1-1.5 GB RAM on Fire TV): default 50s buffers exhaust heap and trigger GC stalls.
+        // Leaner buffer thresholds start playback in ~1s and keep playback smooth.
+        val loadControl = DefaultLoadControl.Builder()
+            .setBufferDurationsMs(
+                /* minBufferMs = */ if (torrent) 20_000 else 15_000,
+                /* maxBufferMs = */ if (torrent) 45_000 else 30_000,
+                /* bufferForPlaybackMs = */ 1_000,
+                /* bufferForPlaybackAfterRebufferMs = */ 2_000
+            )
+            .setPrioritizeTimeOverSizeThresholds(true)
+            .setBackBuffer(10_000, true)
+            .build()
+
         val exo = ExoPlayer.Builder(this, renderers)
             .setMediaSourceFactory(DefaultMediaSourceFactory(dataSource))
+            .setLoadControl(loadControl)
             .setAudioAttributes(AudioAttributes.Builder().setUsage(C.USAGE_MEDIA).setContentType(C.AUDIO_CONTENT_TYPE_MOVIE).build(), true)
             .setHandleAudioBecomingNoisy(true)
             .setSeekBackIncrementMs(SEEK_STEP_MS)

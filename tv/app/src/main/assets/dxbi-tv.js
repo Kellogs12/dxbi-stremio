@@ -27,10 +27,19 @@
 
   const PLUGIN = "dxbi.plugin.js";
   const tv = (window.__dxbiTv = {});
+  try {
+    document.documentElement.classList.add("dx-tv");
+  } catch (_) {}
   // problem reports (the plugin's `report`) add these
   tv.deviceInfo = () => native.deviceInfo();
   // the device clock's offset from UTC in minutes (the plugin's deviceClock)
   tv.utcOffset = () => native.utcOffset();
+  tv.totalMemoryGb = (() => {
+    try {
+      const d = native.deviceInfo();
+      return (d && d.memoryMB && d.memoryMB.total) ? d.memoryMB.total / 1024 : 1.5;
+    } catch (_) { return 1.5; }
+  })();
 
   // ---------------------------------------------------------------------------
   // Fit the page to the TV: lay it out 1280 CSS pixels wide (a 10-foot size on any screen). A phone

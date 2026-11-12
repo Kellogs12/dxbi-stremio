@@ -454,11 +454,16 @@
   }
 
   const settings = { ...DEFAULTS };
-  // Slower TV boxes: 2 GB covers the Mi Box, onn and Chromecast models people report as slow
+  // Slower TV boxes: 2.5 GB covers Fire TV Stick, Mi Box, onn and Chromecast models
   const lite = {
     get on() {
       if (!IN_TV || settings.liteMode === "off") return false;
-      return settings.liteMode === "on" || (navigator.deviceMemory || 8) <= 2 || (performance.memory?.jsHeapSizeLimit || Infinity) <= 512e6;
+      if (settings.liteMode === "on") return true;
+      const tvInfo = window.__dxbiTv && (typeof window.__dxbiTv.deviceInfo === "function" ? window.__dxbiTv.deviceInfo() : window.__dxbiTv);
+      const totalMb = tvInfo?.memoryMB?.total;
+      if (totalMb) return totalMb <= 2560;
+      const ram = (window.__dxbiTv && window.__dxbiTv.totalMemoryGb) || navigator.deviceMemory || (IN_TV ? 1.5 : 8);
+      return IN_TV || ram <= 2.5 || (performance.memory?.jsHeapSizeLimit || Infinity) <= 512e6;
     },
   };
 
