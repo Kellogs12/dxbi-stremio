@@ -114,15 +114,15 @@ dx.bi TV runs on Android TV, Google TV and Fire TV (Fire TV Sticks, Cubes and Fi
 - Fire TV: *Settings → My Fire TV → Developer options → Install unknown apps* → turn **Downloader** on. (No *Developer options*? Go to *Settings → My Fire TV → About*, click your device's name 7 times, then go back.)
 - Android TV and Google TV: Downloader asks for permission the first time you install something. Choose **Settings**, turn it on, and go back.
 
-**3. Download dx.bi.** Open Downloader, select the address box and type the code:
+**3. Download Hank.** Open Downloader, select the address box and type the address:
 
 ```
-9614380
+github.com/Kellogs12/dxbi-stremio/releases/latest/download/hank-tv.apk
 ```
 
-Select **Go**. (The code is a short link to the latest dx.bi TV. If it doesn't work, type the full address instead: `github.com/notdxbi/dxbi-stremio/releases/latest/download/dxbi-tv.apk`) When the download finishes, choose **Install**, then **Open**.
+Select **Go**. When the download finishes, choose **Install**, then **Open**.
 
-**4. Sign in** with your Stremio account. dx.bi is now in your TV's apps.
+**4. Sign in** with your Stremio account. Hank is now in your TV's apps.
 
 Good to know:
 
