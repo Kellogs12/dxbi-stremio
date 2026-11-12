@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# dx.bi installer for Stremio Enhanced (Linux / macOS)
+# Hank installer for Stremio Enhanced (Linux / macOS)
 #   curl -fsSL https://raw.githubusercontent.com/Kellogs12/dxbi-stremio/main/install.sh | bash
 set -euo pipefail
 
@@ -13,7 +13,7 @@ esac
 bold() { printf '\033[1m%s\033[0m\n' "$*"; }
 red()  { printf '\033[1;31m%s\033[0m\n' "$*"; }
 
-bold "DX.BI — installing into: $DATA"
+bold "HANK — installing into: $DATA"
 mkdir -p "$DATA/plugins"
 
 tmp="$(mktemp -d)"

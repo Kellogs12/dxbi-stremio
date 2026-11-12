@@ -1,4 +1,4 @@
-# dx.bi installer for Stremio Enhanced (Windows)
+# Hank installer for Stremio Enhanced (Windows)
 #   irm https://raw.githubusercontent.com/Kellogs12/dxbi-stremio/main/install.ps1 | iex
 $ErrorActionPreference = 'Stop'
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -6,7 +6,7 @@ $ErrorActionPreference = 'Stop'
 $baseUrl = if ($env:DXBI_BASE_URL) { $env:DXBI_BASE_URL } else { 'https://raw.githubusercontent.com/Kellogs12/dxbi-stremio/main' }
 $data = Join-Path $env:APPDATA 'stremio-enhanced'
 
-Write-Host "DX.BI - installing into: $data" -ForegroundColor White
+Write-Host "HANK - installing into: $data" -ForegroundColor White
 $plugins = Join-Path $data 'plugins'
 New-Item -ItemType Directory -Force -Path $plugins | Out-Null
 
