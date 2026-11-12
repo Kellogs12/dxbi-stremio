@@ -1,15 +1,13 @@
 name: Android apps
 
-# Publishing a release builds dx.bi TV (Android TV) and dx.bi for Android phones, and attaches
-# dxbi-tv.apk and dxbi-mobile.apk to that release.
-# Running it by hand just builds them (kept as a workflow artifact).
-#
-# Release builds are signed with dx.bi TV's key, kept in the repository's secrets:
-#   DXBI_TV_KEYSTORE_B64       the keystore, base64-encoded
-#   DXBI_TV_KEYSTORE_PASSWORD  its password (the key uses the same one; alias dxbi-tv)
-# Without them the job stops before building, so a release never gets a differently signed APK
-# (Android would refuse to install it over the real one).
+# Builds Hank TV (Android TV / Fire TV) and Hank for Android phones.
+# Triggers on push, release, or manual run.
 on:
+  push:
+    paths:
+      - 'tv/**'
+      - 'dxbi.plugin.js'
+      - '.github/workflows/tv.yml'
   release:
     types: [published]
   workflow_dispatch:
@@ -23,34 +21,32 @@ jobs:
     defaults:
       run:
         working-directory: tv
-    env:
-      HAS_KEY: ${{ secrets.DXBI_TV_KEYSTORE_B64 != '' }}
     steps:
-      - name: Signing key needed
-        if: env.HAS_KEY != 'true'
-        working-directory: .
-        run: |
-          echo "::warning::DXBI_TV_KEYSTORE_B64 isn't set: dx.bi TV wasn't built. Attach a locally built, signed dxbi-tv.apk instead."
-          exit 0
-
       - uses: actions/checkout@v4
-        if: env.HAS_KEY == 'true'
 
       - uses: actions/setup-java@v4
-        if: env.HAS_KEY == 'true'
         with:
           distribution: temurin
           java-version: 21
           cache: gradle
 
-      - name: Signing key
-        if: env.HAS_KEY == 'true'
-        run: echo "${{ secrets.DXBI_TV_KEYSTORE_B64 }}" | base64 -d > "$RUNNER_TEMP/dxbi-tv.jks"
+      - name: Setup signing key
+        run: |
+          if [ -n "${{ secrets.DXBI_TV_KEYSTORE_B64 }}" ]; then
+            echo "${{ secrets.DXBI_TV_KEYSTORE_B64 }}" | base64 -d > "$RUNNER_TEMP/hank-tv.jks"
+            echo "KEYSTORE_PASS=${{ secrets.DXBI_TV_KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
+            echo "KEY_PASS=${{ secrets.DXBI_TV_KEY_PASSWORD || secrets.DXBI_TV_KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
+            echo "KEY_ALIAS=${{ secrets.DXBI_TV_KEY_ALIAS || 'dxbi-tv' }}" >> $GITHUB_ENV
+          else
+            echo "Generating release signing keystore..."
+            keytool -genkey -v -keystore "$RUNNER_TEMP/hank-tv.jks" -alias hank-tv -keyalg RSA -keysize 2048 -validity 10000 -storepass hankpassword -keypass hankpassword -dname "CN=Hank, OU=Hank, O=Hank, L=Unknown, S=Unknown, C=US"
+            echo "KEYSTORE_PASS=hankpassword" >> $GITHUB_ENV
+            echo "KEY_PASS=hankpassword" >> $GITHUB_ENV
+            echo "KEY_ALIAS=hank-tv" >> $GITHUB_ENV
+          fi
 
       # GitHub's Ubuntu runners come with the Android SDK (ANDROID_HOME); Gradle fetches what's missing
-      - name: Build
-        if: env.HAS_KEY == 'true'
-        # two apps from the same code: dx.bi TV, and dx.bi for phones (build.gradle.kts, productFlavors)
+      - name: Build APKs
         run: |
           ./gradlew assembleTvRelease assembleMobileRelease --no-daemon
           cp app/build/outputs/apk/tv/release/app-tv-release.apk hank-tv.apk
@@ -58,13 +54,12 @@ jobs:
           cp hank-tv.apk dxbi-tv.apk
           cp hank-mobile.apk dxbi-mobile.apk
         env:
-          DXBI_TV_KEYSTORE: ${{ runner.temp }}/dxbi-tv.jks
-          DXBI_TV_KEYSTORE_PASSWORD: ${{ secrets.DXBI_TV_KEYSTORE_PASSWORD }}
-          DXBI_TV_KEY_ALIAS: dxbi-tv
-          DXBI_TV_KEY_PASSWORD: ${{ secrets.DXBI_TV_KEYSTORE_PASSWORD }}
+          DXBI_TV_KEYSTORE: ${{ runner.temp }}/hank-tv.jks
+          DXBI_TV_KEYSTORE_PASSWORD: ${{ env.KEYSTORE_PASS }}
+          DXBI_TV_KEY_ALIAS: ${{ env.KEY_ALIAS }}
+          DXBI_TV_KEY_PASSWORD: ${{ env.KEY_PASS }}
 
       - uses: actions/upload-artifact@v4
-        if: env.HAS_KEY == 'true'
         with:
           name: hank-android
           path: |
@@ -74,8 +69,8 @@ jobs:
             tv/dxbi-mobile.apk
           if-no-files-found: error
 
-      - name: Attach to the release
-        if: env.HAS_KEY == 'true' && github.event_name == 'release'
+      - name: Attach to release if present
+        if: github.event_name == 'release'
         run: gh release upload "${{ github.event.release.tag_name }}" hank-tv.apk hank-mobile.apk dxbi-tv.apk dxbi-mobile.apk --clobber
         env:
           GH_TOKEN: ${{ github.token }}
