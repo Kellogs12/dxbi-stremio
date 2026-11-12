@@ -121,9 +121,9 @@ fun ProfileScreen(
                 Line(Icons.Filled.Download, "Downloads", "Films and episodes saved to watch offline", onClick = onDownloads)
                 Line(Icons.Filled.BarChart, "Your stats", "How long you've watched, what and when", onClick = onStats)
                 Line(Icons.Filled.Tune, "Customise Home", "Order and hide Home's rows", onClick = onCustomiseHome)
-                Line(Icons.Filled.Settings, "dx.bi settings", "Rows, reviews, skipping, watch party and more", onClick = onSettings)
+                Line(Icons.Filled.Settings, "Hank settings", "Rows, reviews, skipping, watch party and more", onClick = onSettings)
                 Line(Icons.Filled.Subtitles, "Playback & subtitles", "Languages, subtitles, next episode, streaming server", onClick = onStremioSettings)
-                Line(Icons.Filled.BugReport, "Report a problem", "Tell dx.bi's developer what went wrong") { reporting = true }
+                Line(Icons.Filled.BugReport, "Report a problem", "Tell Hank's developer what went wrong") { reporting = true }
                 // (signing out of a guest session goes back to the sign-in screen)
                 if (account?.signedIn == true) Line(Icons.AutoMirrored.Filled.ExitToApp, "Sign out", account?.email) { stremio.signOut() }
                 else Line(Icons.AutoMirrored.Filled.ExitToApp, "Sign in", "Your library, progress and addons on every device") { stremio.signOut() }
@@ -146,9 +146,9 @@ private fun ReportDialog(stremio: Stremio, onClose: () -> Unit) {
         text = {
             Column {
                 if (code != null) {
-                    Text("Thanks! Your report code is $code.\nPost it in dx.bi's Discord (#bug-reports) so it can be matched to you.", color = Dx.Text)
+                    Text("Thanks! Your report code is $code.\nPost it in Hank's Discord (#bug-reports) so it can be matched to you.", color = Dx.Text)
                 } else {
-                    Text("What went wrong, and what were you doing? dx.bi adds its version, this phone's model, your settings, addon names and recent errors. No passwords, keys or stream links are sent.", color = Dx.Muted, style = MaterialTheme.typography.bodySmall)
+                    Text("What went wrong, and what were you doing? Hank adds its version, this phone's model, your settings, addon names and recent errors. No passwords, keys or stream links are sent.", color = Dx.Muted, style = MaterialTheme.typography.bodySmall)
                     Spacer(Modifier.height(12.dp))
                     OutlinedTextField(value = text, onValueChange = { text = it }, minLines = 4, maxLines = 8, modifier = Modifier.fillMaxWidth())
                     problem?.let { Text(it, color = Dx.Accent, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp)) }

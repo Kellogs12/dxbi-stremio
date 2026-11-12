@@ -251,7 +251,7 @@ fun DetailScreen(stremio: Stremio, type: String, id: String, preview: Title?, pl
             when {
                 r == null -> Text("Gathering reviews…", color = Dx.Muted, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(Gutter, 14.dp))
                 r.critics.isEmpty() && r.audience.isEmpty() && r.audienceProblem == null && r.problem == null ->
-                    Text("No reviews found for this one yet." + if ("tmdb" in r.missing) " A TMDB key in dx.bi settings adds audience reviews." else "",
+                    Text("No reviews found for this one yet." + if ("tmdb" in r.missing) " A TMDB key in Hank settings adds audience reviews." else "",
                         color = Dx.Muted, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(Gutter, 14.dp))
                 else -> ReviewsSection(r)
             }
@@ -663,7 +663,7 @@ private fun ReviewsSection(r: Reviews) {
             }
         }
         val notes = listOfNotNull(
-            r.audienceProblem?.let { "$it. Check the TMDB key in dx.bi settings." },
+            r.audienceProblem?.let { "$it. Check the TMDB key in Hank settings." },
             r.problem?.let { "$it, so these scores come from Wikidata." },
         )
         notes.forEach { Text(it, color = Dx.Faint, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(horizontal = Gutter, vertical = 4.dp)) }

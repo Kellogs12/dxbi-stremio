@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Hank">
+  <title>Hank</title>
+  <style>
+    body {
+      background-color: #0b0b0e;
+      color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      box-sizing: border-box;
+      text-align: center;
+    }
+    .card {
+      background: #18181f;
+      border: 1px solid #2a2a38;
+      border-radius: 24px;
+      padding: 32px 24px;
+      max-width: 360px;
+      width: 100%;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.6);
+    }
+    img {
+      width: 100px;
+      height: 100px;
+      border-radius: 22px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.4);
+    }
+    h1 {
+      font-size: 24px;
+      margin: 0 0 8px;
+      font-weight: 700;
+    }
+    p {
+      color: #9e9ea7;
+      font-size: 14px;
+      margin: 0 0 24px;
+      line-height: 1.4;
+    }
+    .btn {
+      display: block;
+      background: #e50914;
+      color: #fff;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 16px;
+      padding: 14px 20px;
+      border-radius: 14px;
+      transition: background 0.2s;
+      margin-bottom: 12px;
+    }
+    .btn.secondary {
+      background: #2a2a38;
+      color: #e2e2e8;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <img src="Hank-Icon.png" alt="Hank Icon" onerror="this.style.display='none'">
+    <h1>Hank</h1>
+    <p>Opening Hank in LiveContainer...</p>
+    <a class="btn" href="livecontainer://livecontainer-launch?bundle-name=Hank.app">Open Hank</a>
+    <a class="btn secondary" href="livecontainer://livecontainer-launch?bundle-name=Dxbi.app">Open Hank (Fallback Dxbi)</a>
+  </div>
+  <script>
+    setTimeout(function() {
+      window.location.href = "livecontainer://livecontainer-launch?bundle-name=Hank.app";
+    }, 300);
+  </script>
+</body>
+</html>

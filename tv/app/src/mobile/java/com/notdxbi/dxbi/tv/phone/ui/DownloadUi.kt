@@ -368,7 +368,7 @@ private fun DownloadSettings() {
         item {
             Column(Modifier.padding(horizontal = Gutter, vertical = 12.dp)) {
                 Text("Where downloads go", color = Dx.Text, style = MaterialTheme.typography.titleSmall)
-                Text(if (places.size > 1) "The phone, or a memory card. Moving them takes a moment and restarts dx.bi." else "On this phone (no memory card found).", color = Dx.Faint, style = MaterialTheme.typography.bodySmall)
+                Text(if (places.size > 1) "The phone, or a memory card. Moving them takes a moment and restarts Hank." else "On this phone (no memory card found).", color = Dx.Faint, style = MaterialTheme.typography.bodySmall)
                 Spacer(Modifier.height(8.dp))
                 places.forEach { p ->
                     val on = p.index == s.storage
@@ -396,7 +396,7 @@ private fun DownloadSettings() {
             title = { Text("Save downloads to ${p.label.lowercase()}?") },
             text = {
                 Column {
-                    Text(if (count > 0) "Your $count download${if (count == 1) "" else "s"} move there too, then dx.bi restarts." else "New downloads go there. dx.bi restarts to switch.", color = Dx.Muted)
+                    Text(if (count > 0) "Your $count download${if (count == 1) "" else "s"} move there too, then Hank restarts." else "New downloads go there. Hank restarts to switch.", color = Dx.Muted)
                     progress?.let { Spacer(Modifier.height(12.dp)); LinearProgressIndicator(progress = { it }, color = Dx.Accent, modifier = Modifier.fillMaxWidth()) }
                 }
             },

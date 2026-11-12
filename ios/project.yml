@@ -1,8 +1,8 @@
-# dx.bi for iPhone. XcodeGen makes the Xcode project from this (`xcodegen` in ios/; the .xcodeproj
+# Hank for iPhone. XcodeGen makes the Xcode project from this (`xcodegen` in ios/; the .xcodeproj
 # isn't kept in git). GitHub Actions builds it on a Mac: .github/workflows/ios.yml
-name: Dxbi
+name: Hank
 options:
-  bundleIdPrefix: com.notdxbi
+  bundleIdPrefix: com.hank
   deploymentTarget:
     iOS: "18.0"
   createIntermediateGroups: true
@@ -11,7 +11,7 @@ settings:
     SWIFT_VERSION: "5.0"
     MARKETING_VERSION: "1.0.0"
     # where the app looks for its updates: the repository it was built from (the build sets it)
-    DXBI_UPDATE_REPO: notdxbi/dxbi-stremio
+    DXBI_UPDATE_REPO: Kellogs12/dxbi-stremio
     CURRENT_PROJECT_VERSION: "1"
     DEVELOPMENT_TEAM: ""
     TARGETED_DEVICE_FAMILY: "1,2"
@@ -21,11 +21,11 @@ packages:
     url: https://github.com/streamyfin/MPVKit.git
     exactVersion: 0.41.0-av5
 targets:
-  Dxbi:
+  Hank:
     type: application
     platform: iOS
     sources:
-      - path: Dxbi
+      - path: Hank
       # The engine the app runs underneath: the same scripts the Android apps use
       - path: ../dxbi.plugin.js
         buildPhase: resources
@@ -39,7 +39,7 @@ targets:
       - package: MPVKit
         product: MPVKit-GPL
     info:
-      path: Dxbi/Info.plist
+      path: Hank/Info.plist
       properties:
         CFBundleDisplayName: Hank
         DxbiUpdateRepo: $(DXBI_UPDATE_REPO)
@@ -77,12 +77,13 @@ targets:
           - outplayer
           - senplayer
         CFBundleURLTypes:
-          - CFBundleURLName: com.notdxbi.dxbi.stremio
+          - CFBundleURLName: com.hank.stremio
             CFBundleURLSchemes:
+              - hank
               - stremio
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.notdxbi.dxbi.ios
+        PRODUCT_BUNDLE_IDENTIFIER: com.hank.ios
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         CODE_SIGNING_ALLOWED: NO
         CODE_SIGN_IDENTITY: ""

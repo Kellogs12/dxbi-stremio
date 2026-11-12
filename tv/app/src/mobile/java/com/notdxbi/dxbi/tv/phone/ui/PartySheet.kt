@@ -156,7 +156,7 @@ private fun InParty(s: JSONObject, context: Context, stremio: Stremio) {
         }
         Spacer(Modifier.width(8.dp))
         OutlineButton("Share", Modifier.width(84.dp)) {
-            context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, "Join my dx.bi watch party: $code"), null))
+            context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, "Join my Hank watch party: $code"), null))
         }
     }
     Spacer(Modifier.height(16.dp))

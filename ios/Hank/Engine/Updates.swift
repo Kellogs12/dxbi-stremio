@@ -16,8 +16,8 @@ enum Updates {
     }
 
     /** The repository it was built from (the Info.plist's, set by the build) */
-    static let repo: String = Bundle.main.object(forInfoDictionaryKey: "DxbiUpdateRepo") as? String ?? "notdxbi/dxbi-stremio"
-    private static let asset = "dxbi.ipa"
+    static let repo: String = Bundle.main.object(forInfoDictionaryKey: "DxbiUpdateRepo") as? String ?? "Kellogs12/dxbi-stremio"
+    private static let asset = "hank.ipa"
     private static let recheck: TimeInterval = 6 * 60 * 60
     private static var lastCheck: Date = .distantPast
     private static let defaults = UserDefaults.standard
@@ -39,7 +39,7 @@ enum Updates {
     private static func fromApi() async -> Release? {
         guard let url = URL(string: "https://api.github.com/repos/\(repo)/releases/latest") else { return nil }
         var request = URLRequest(url: url)
-        request.setValue("dxbi-ios", forHTTPHeaderField: "User-Agent")
+        request.setValue("hank-ios", forHTTPHeaderField: "User-Agent")
         guard let (data, response) = try? await URLSession.shared.data(for: request),
               (response as? HTTPURLResponse)?.statusCode == 200,
               let o = (try? JSONSerialization.jsonObject(with: data)) as? JSON,

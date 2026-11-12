@@ -3,7 +3,7 @@ import UIKit
 import WebKit
 
 @main
-struct DxbiApp: App {
+struct HankApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var delegate
     @State private var stremio: Stremio
 
@@ -88,12 +88,12 @@ struct RootView: View {
             guard phase == .active else { return }
             Task { if let found = await Updates.check() { update = found } }
         }
-        .alert("dx.bi \(update?.version ?? "") is out", isPresented: Binding(get: { update != nil }, set: { if !$0 { update = nil } }), presenting: update) { release in
+        .alert("Hank \(update?.version ?? "") is out", isPresented: Binding(get: { update != nil }, set: { if !$0 { update = nil } }), presenting: update) { release in
             Button("Open the Release") { UIApplication.shared.open(release.page) }
             Button("Skip This Version") { Updates.skip(release) }
             Button("Not Now", role: .cancel) {}
         } message: { _ in
-            Text("You have \(Page.version). The release page has dxbi.ipa: install it over this one with SideStore, AltStore or Sideloadly, and your sign-in, settings and downloads stay.")
+            Text("You have \(Page.version). The release page has hank.ipa: install it over this one with SideStore, AltStore or Sideloadly, and your sign-in, settings and downloads stay.")
         }
     }
 

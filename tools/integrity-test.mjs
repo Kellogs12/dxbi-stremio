@@ -79,8 +79,15 @@ check("every setting is a type the apps accept (input, toggle, select)", () => {
   assert.deepEqual(bad, [], `unsupported setting types: ${bad.join(", ")}`);
 });
 
-check("scripts parse (plugin, dx.bi TV, phone engine)", () => {
-  for (const f of ["dxbi.plugin.js", "tv/app/src/main/assets/dxbi-tv.js", "tv/app/src/mobile/assets/dxbi-engine.js"]) {
+check("scripts parse (plugin, TV, phone engine, webOS)", () => {
+  for (const f of [
+    "dxbi.plugin.js",
+    "tv/app/src/main/assets/dxbi-tv.js",
+    "tv/app/src/mobile/assets/dxbi-engine.js",
+    "webos/app/hank-webos.js",
+    "webos/service/launch.js",
+    "tools/package-webos.mjs"
+  ]) {
     execFileSync(process.execPath, ["--check", join(root, f)], { stdio: "pipe" });
   }
 });

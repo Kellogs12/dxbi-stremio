@@ -1,5 +1,6 @@
 import { homedir } from "os";
 import { join } from "path";
+import { existsSync } from "fs";
 
 class Properties {
     public static themeLinkSelector: string = "head > link[rel=stylesheet]";
@@ -10,8 +11,12 @@ class Properties {
             ? join(homedir(), "Library", "Application Support")
             : join(homedir(), ".config");
 
-    // DXBI_DATA_DIR keeps a source build's plugins, themes and server apart from an installed dx.bi
-    public static enhancedPath = process.env.DXBI_DATA_DIR || join(Properties.baseDataPath, "dxbi");
+    // Data directory: defaults to 'hank', with backward compatibility for an existing 'dxbi' folder
+    public static enhancedPath = process.env.HANK_DATA_DIR || process.env.DXBI_DATA_DIR || (() => {
+        const hankDir = join(Properties.baseDataPath, "hank");
+        const dxbiDir = join(Properties.baseDataPath, "dxbi");
+        return existsSync(hankDir) || !existsSync(dxbiDir) ? hankDir : dxbiDir;
+    })();
 
     public static themesPath = join(Properties.enhancedPath, "themes");
     public static pluginsPath = join(Properties.enhancedPath, "plugins");

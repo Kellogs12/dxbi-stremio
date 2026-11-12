@@ -39,7 +39,6 @@ class MainActivity : AppCompatActivity() {
     private var injectedAtStart = false
     private var lastBack = 0L
     private var playbackListener: PlaybackBus.Listener? = null
-    private var intro: Intro? = null
 
     /**
      * A 4K TV would draw the page at 3840 px, four times the work and memory of 1080p, on hardware
@@ -76,9 +75,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(root)
         // dx.bi for phones: its own screens over the page (nothing in dx.bi TV: see PhoneHooks.kt)
         Phone.attach(this, root, ::js)
-        // Only when dx.bi is opened, not when the screen is rebuilt (after a page crash, a turned phone).
-        // (not in the phone app: the film is made for a TV screen)
-        if (savedInstanceState == null && !BuildConfig.PHONE_UI) intro = Intro(this, root).also { it.start() }
         web.setBackgroundColor(getColor(R.color.background))
         web.isFocusable = true
         web.isFocusableInTouchMode = true
@@ -188,11 +184,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        // Any key skips the intro (and isn't passed on to the page underneath)
-        intro?.takeIf { it.showing }?.let {
-            if (event.action == KeyEvent.ACTION_UP) it.skip()
-            return true
-        }
         // Play/pause keys on the Home screen do nothing useful in the page: keep them from scrolling it
         if (event.keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE) return true
         return super.dispatchKeyEvent(event)
@@ -206,14 +197,14 @@ class MainActivity : AppCompatActivity() {
             if (now - lastBack < 2500) finish()
             else {
                 lastBack = now
-                Toast.makeText(this, "Press Back again to leave dx.bi", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Press Back again to leave Hank", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
     /**
-     * Start the page again in a lighter way: the intro film is the heaviest moment of a start, so it's
-     * switched off (it can be switched back on in dx.bi's settings). A second crash soon after says so.
+     * Start the page again in a lighter way: the intro animation is the heaviest moment of a start, so it's
+     * switched off (it can be switched back on in Hank's settings). A second crash soon after says so.
      */
     private fun recoverFromCrash(crashed: Boolean) {
         val state = getSharedPreferences("app", MODE_PRIVATE)
@@ -232,8 +223,8 @@ class MainActivity : AppCompatActivity() {
         if (again) {
             setContentView(View(this))
             AlertDialog.Builder(this)
-                .setTitle("dx.bi keeps stopping")
-                .setMessage("dx.bi's screen stopped twice in a row on this TV, usually because the TV is short of memory. Closing other apps (or restarting the TV) helps. Try again?")
+                .setTitle("Hank keeps stopping")
+                .setMessage("Hank's screen stopped twice in a row on this TV, usually because the TV is short of memory. Closing other apps (or restarting the TV) helps. Try again?")
                 .setCancelable(false)
                 .setPositiveButton("Try again") { _, _ -> recreate() }
                 .setNegativeButton("Close") { _, _ -> finish() }
@@ -275,12 +266,6 @@ class MainActivity : AppCompatActivity() {
         web.loadUrl("$STREMIO_URL#/addons?addon=" + Uri.encode(manifest))
     }
 
-    /** Whether the page has a screen to show yet (what the intro waits for before fading out) */
-    fun pageReady(answer: (Boolean) -> Unit) {
-        if (!::web.isInitialized) return answer(true)
-        web.evaluateJavascript("!!document.querySelector('$PAGE_READY')") { answer(it == "true") }
-    }
-
     fun js(code: String) {
         if (::web.isInitialized) web.post { web.evaluateJavascript(code, null) }
     }
@@ -310,10 +295,10 @@ class MainActivity : AppCompatActivity() {
             .setTitle(if (fireTv) "Update your Fire TV" else "Update Android System WebView")
             .setCancelable(false)
         if (fireTv) {
-            builder.setMessage("dx.bi needs a newer web engine than this Fire TV has ($major). Update it under Settings → My Fire TV → About → Check for Updates, then open dx.bi again.")
+            builder.setMessage("Hank needs a newer web engine than this Fire TV has ($major). Update it under Settings → My Fire TV → About → Check for Updates, then open Hank again.")
                 .setPositiveButton("Close") { _, _ -> finish() }
         } else {
-            builder.setMessage("dx.bi needs Android System WebView $MIN_WEBVIEW or newer (this TV has $major). Update it from the Play Store (search \"Android System WebView\"), then open dx.bi again.")
+            builder.setMessage("Hank needs Android System WebView $MIN_WEBVIEW or newer (this TV has $major). Update it from the Play Store (search \"Android System WebView\"), then open Hank again.")
                 .setPositiveButton("Open Play Store") { _, _ ->
                     openExternal("market://details?id=com.google.android.webview")
                     finish()
@@ -336,7 +321,5 @@ class MainActivity : AppCompatActivity() {
         const val STREMIO_URL = "https://web.stremio.com/"
         const val MIN_WEBVIEW = 100
         private const val MAX_PAGE_WIDTH = 1920
-        // SPLASH_READY in dxbi.plugin.js (Home's rows, a details page, Settings…)
-        private const val PAGE_READY = """[class*="meta-item-container"], [class*="metadetails-container"], [class*="player-container"], [class*="settings-content"], [class*="addons-content"]"""
     }
 }

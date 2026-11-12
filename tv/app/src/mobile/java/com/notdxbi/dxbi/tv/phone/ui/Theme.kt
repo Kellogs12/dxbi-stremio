@@ -48,11 +48,11 @@ private val Type = Typography(
 
 private val Bebas = FontFamily(Font(R.font.bebas_neue))
 
-/** The DX.BI wordmark, as dx.bi's theme draws it everywhere else: Bebas Neue, slightly spaced, in the accent */
+/** The Hank wordmark, as Hank's theme draws it everywhere else: Bebas Neue, slightly spaced, in the accent */
 @Composable
 fun Logo(size: TextUnit = 38.sp, modifier: Modifier = Modifier) {
     Text(
-        "DX.BI",
+        "HANK",
         modifier = modifier,
         style = TextStyle(
             fontFamily = Bebas,

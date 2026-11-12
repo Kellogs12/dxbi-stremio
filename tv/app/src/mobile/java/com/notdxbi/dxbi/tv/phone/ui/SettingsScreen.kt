@@ -104,13 +104,13 @@ fun SettingsScreen(stremio: Stremio, onBack: () -> Unit) {
 
     // the phone's own option (where videos play) leads the Player section
     val other by stremio.playInOtherApp.collectAsState()
-    val playIn = Setting("playIn", "select", "Play videos in", "dx.bi's player, or another app on this phone (VLC, mpv, MX Player…).",
-        "Player", listOf(false to "dx.bi's player", true to "External player (ask which)"), other)
+    val playIn = Setting("playIn", "select", "Play videos in", "Hank's player, or another app on this phone (VLC, mpv, MX Player…).",
+        "Player", listOf(false to "Hank's player", true to "External player (ask which)"), other)
 
     Column(Modifier.fillMaxSize().background(Dx.Background).windowInsetsPadding(WindowInsets.safeDrawing)) {
         Row(Modifier.fillMaxWidth().height(56.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = { if (section != null) section = null else onBack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Dx.Text) }
-            Text(section ?: "dx.bi settings", style = MaterialTheme.typography.titleLarge, color = Dx.Text)
+            Text(section ?: "Hank settings", style = MaterialTheme.typography.titleLarge, color = Dx.Text)
         }
         val items = list
         if (items == null) {

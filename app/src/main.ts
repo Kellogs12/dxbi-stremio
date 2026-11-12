@@ -1,4 +1,4 @@
-import { join } from "path";
+import { join, dirname } from "path";
 import { mkdirSync, existsSync } from "fs";
 import Updater from "./core/Updater";
 import Properties from "./core/Properties";
@@ -32,7 +32,12 @@ import { restoreWindowState } from "./core/WindowState";
 import { isFullScreen, maximize, setFullScreen, useManualMaximize } from "./core/Maximize";
 import { setupAutoUpdate } from "./core/AutoUpdate";
 
-app.setName("dxbi");
+app.setName("Hank");
+const defaultUserData = app.getPath('userData');
+const legacyUserData = join(dirname(defaultUserData), "dxbi");
+if (!existsSync(defaultUserData) && existsSync(legacyUserData)) {
+    app.setPath('userData', legacyUserData);
+}
 const userDataPath = app.getPath('userData');
 
 export let mainWindow: BrowserWindow | null;
@@ -156,6 +161,25 @@ async function createWindow() {
             logger.warn(`Blocked invalid URL in openExternal: ${edata.url}`);
         }
         return { action: "deny" };
+    });
+
+    // Prevent top-level window navigation off web.stremio.com
+    mainWindow.webContents.on('will-navigate', (event, targetUrl) => {
+        try {
+            const target = new URL(targetUrl);
+            const stremio = new URL(URLS.STREMIO_WEB);
+            if (target.origin !== stremio.origin) {
+                event.preventDefault();
+                if (target.protocol === "http:" || target.protocol === "https:") {
+                    shell.openExternal(targetUrl);
+                } else {
+                    logger.warn(`Blocked navigation to untrusted protocol: ${target.protocol}`);
+                }
+            }
+        } catch {
+            event.preventDefault();
+            logger.warn(`Blocked invalid navigation URL: ${targetUrl}`);
+        }
     });
     
     // Devtools flag

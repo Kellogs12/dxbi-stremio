@@ -45,13 +45,13 @@ android {
         create("tv") {
             dimension = "device"
             buildConfigField("boolean", "PHONE_UI", "false")
-            buildConfigField("String", "APK_NAME", "\"dxbi-tv.apk\"")
+            buildConfigField("String", "APK_NAME", "\"hank-tv.apk\"")
         }
         create("mobile") {
             dimension = "device"
             applicationId = "com.notdxbi.dxbi.mobile"
             buildConfigField("boolean", "PHONE_UI", "true")
-            buildConfigField("String", "APK_NAME", "\"dxbi-mobile.apk\"")
+            buildConfigField("String", "APK_NAME", "\"hank-mobile.apk\"")
             proguardFiles("proguard-mobile.pro")
         }
     }

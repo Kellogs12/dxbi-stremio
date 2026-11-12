@@ -116,7 +116,7 @@ object Phone {
                     activity, id, Intent(activity, UpdateReceiver::class.java),
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE,
                 )
-                activity.runOnUiThread { Toast.makeText(activity, "Installing the update: dx.bi will close and open as the new version", Toast.LENGTH_LONG).show() }
+                activity.runOnUiThread { Toast.makeText(activity, "Installing the update: Hank will close and open as the new version", Toast.LENGTH_LONG).show() }
                 session.commit(done.intentSender)
             }
             true

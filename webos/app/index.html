@@ -122,9 +122,15 @@
       var interval = setInterval(function() {
         if (redirected) { clearInterval(interval); return; }
         pollCount++;
-        var img = new Image();
-        img.onload = function() { clearInterval(interval); go(); };
-        img.src = 'http://127.0.0.1:8080/favicon.ico?' + Date.now();
+        if (window.fetch) {
+          fetch('http://127.0.0.1:8080/favicon.ico?' + Date.now())
+            .then(function(r) { if (r.ok) { clearInterval(interval); go(); } })
+            .catch(function() {});
+        } else {
+          var img = new Image();
+          img.onload = function() { clearInterval(interval); go(); };
+          img.src = 'http://127.0.0.1:8080/favicon.ico?' + Date.now();
+        }
 
         if (pollCount > 25) { // 25 attempts (~12.5 seconds)
           clearInterval(interval);

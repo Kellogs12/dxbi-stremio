@@ -40,9 +40,6 @@
 		"unzipper": "^0.12.3",
 		"winston": "^3.11.0"
 	},
-	"optionalDependencies": {
-		"dmg-license": "^1.0.11"
-	},
 	"build": {
 		"appId": "com.kellogs12.hank",
 		"productName": "Hank",

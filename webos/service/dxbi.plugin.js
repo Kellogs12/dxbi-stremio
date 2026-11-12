@@ -48,7 +48,7 @@
   const IN_APP = /\b(dxbi|hank)\//i.test(navigator.userAgent) || (typeof window !== "undefined" && Boolean(window.StremioEnhancedAPI));
   // dx.bi TV (Android TV) plays every stream in its own native player, so the in-page player
   // features (seek previews, picture panel, skip buttons, watch parties…) stand aside there
-  const IN_TV = /\bdxbi-tv\//.test(navigator.userAgent);
+  const IN_TV = /\b(dxbi|hank)-tv\//i.test(navigator.userAgent);
   // A TV stick can't keep up with smooth scrolling down the page (each new row is drawn as it
   // slides in): jumps there. Rows still glide sideways (page()): that runs on the graphics chip alone.
   const SCROLL = IN_TV ? "instant" : "smooth";

@@ -1,4 +1,4 @@
-Dxbi.xcodeproj/
+*.xcodeproj/
 build/
 Payload/
 *.ipa

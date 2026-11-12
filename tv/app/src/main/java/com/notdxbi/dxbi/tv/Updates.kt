@@ -62,7 +62,7 @@ object Updates {
         if (!ENABLED) return@thread
         try {
             val text = get(PLUGIN_URL) ?: return@thread
-            if (!text.contains("@name dx.bi")) return@thread
+            if (!text.contains("@name Hank") && !text.contains("@name dx.bi")) return@thread
             if (isNewer(version(text), version(pluginSource(context)))) {
                 // Written next to it and swapped in whole: a half-written copy (power cut, app closed)
                 // would otherwise keep its new version number and be loaded, and never fetched again
@@ -126,7 +126,7 @@ object Updates {
                 if (activity.isFinishing || offering) return@runOnUiThread
                 offering = true
                 val dialog = AlertDialog.Builder(activity)
-                    .setTitle("dx.bi $latest is out")
+                    .setTitle("Hank $latest is out")
                     .setMessage(
                         if (BuildConfig.PHONE_UI) "You have $current. Update now? It downloads in the background and installs (Android may ask you to confirm)."
                         else "You have $current. Update now? It downloads in the background, then Android asks you to install it.",
@@ -145,16 +145,16 @@ object Updates {
     private val downloading = java.util.concurrent.atomic.AtomicBoolean(false)
 
     private fun download(activity: MainActivity, url: String, size: Long, version: String) {
-        // Android only installs apps from dx.bi once it's allowed to ("Install unknown apps")
+        // Android only installs apps from Hank once it's allowed to ("Install unknown apps")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !activity.packageManager.canRequestPackageInstalls()) {
             // It carries on by itself when they come back from that screen having allowed it
             pendingInstall = { download(it, url, size, version) }
             try {
                 activity.startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:${activity.packageName}")))
-                Toast.makeText(activity, "Allow dx.bi to install apps, then come back", Toast.LENGTH_LONG).show()
+                Toast.makeText(activity, "Allow Hank to install apps, then come back", Toast.LENGTH_LONG).show()
             } catch (_: Exception) {
                 // Some TVs (Fire OS among them) have no such screen to open directly
-                Toast.makeText(activity, "Allow dx.bi to install apps in the TV's settings (on Fire TV: My Fire TV → Developer options → Install unknown apps), then come back", Toast.LENGTH_LONG).show()
+                Toast.makeText(activity, "Allow Hank to install apps in the TV's settings (on Fire TV: My Fire TV → Developer options → Install unknown apps), then come back", Toast.LENGTH_LONG).show()
             }
             return
         }
@@ -168,7 +168,7 @@ object Updates {
         thread(name = "dxbi-apk-download") {
             try {
                 val dir = File(activity.cacheDir, "updates").apply { deleteRecursively(); mkdirs() }
-                val apk = File(dir, "dxbi-tv-$version.apk")
+                val apk = File(dir, "${APK_ASSET.removeSuffix(".apk")}-$version.apk")
                 // A download cut short (slow Wi-Fi, the TV sleeping) is tried again before giving up
                 var problem: String? = null
                 for (attempt in 1..3) {
@@ -227,7 +227,7 @@ object Updates {
         val info = activity.packageManager.getPackageArchiveInfo(partial.path, 0)
         if (info == null || info.packageName != activity.packageName || info.versionName != version) {
             partial.delete()
-            return "the downloaded file isn't a dx.bi $version app"
+            return "the downloaded file isn't a Hank $version app"
         }
         apk.delete()
         if (!partial.renameTo(apk)) return "the update couldn't be saved"

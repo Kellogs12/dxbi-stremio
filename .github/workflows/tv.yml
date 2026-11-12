@@ -53,8 +53,10 @@ jobs:
         # two apps from the same code: dx.bi TV, and dx.bi for phones (build.gradle.kts, productFlavors)
         run: |
           ./gradlew assembleTvRelease assembleMobileRelease --no-daemon
-          cp app/build/outputs/apk/tv/release/app-tv-release.apk dxbi-tv.apk
-          cp app/build/outputs/apk/mobile/release/app-mobile-release.apk dxbi-mobile.apk
+          cp app/build/outputs/apk/tv/release/app-tv-release.apk hank-tv.apk
+          cp app/build/outputs/apk/mobile/release/app-mobile-release.apk hank-mobile.apk
+          cp hank-tv.apk dxbi-tv.apk
+          cp hank-mobile.apk dxbi-mobile.apk
         env:
           DXBI_TV_KEYSTORE: ${{ runner.temp }}/dxbi-tv.jks
           DXBI_TV_KEYSTORE_PASSWORD: ${{ secrets.DXBI_TV_KEYSTORE_PASSWORD }}
@@ -64,14 +66,16 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: env.HAS_KEY == 'true'
         with:
-          name: dxbi-android
+          name: hank-android
           path: |
+            tv/hank-tv.apk
+            tv/hank-mobile.apk
             tv/dxbi-tv.apk
             tv/dxbi-mobile.apk
           if-no-files-found: error
 
       - name: Attach to the release
         if: env.HAS_KEY == 'true' && github.event_name == 'release'
-        run: gh release upload "${{ github.event.release.tag_name }}" dxbi-tv.apk dxbi-mobile.apk --clobber
+        run: gh release upload "${{ github.event.release.tag_name }}" hank-tv.apk hank-mobile.apk dxbi-tv.apk dxbi-mobile.apk --clobber
         env:
           GH_TOKEN: ${{ github.token }}

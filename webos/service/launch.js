@@ -53,19 +53,26 @@ function findAsset(filename) {
   return null;
 }
 
+// 1x1 transparent PNG for favicon healthcheck
+var TRANSPARENT_PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', 'base64');
+
 // Cached index.html
 var cachedHtml = null;
 var cacheTime = 0;
 var CACHE_TTL_MS = 1000 * 60 * 60; // 1 hour
 
-function fetchStremioHtml(cb) {
+function fetchStremioHtml(cb, targetUrl, depth) {
   if (cachedHtml && (Date.now() - cacheTime < CACHE_TTL_MS)) {
     return cb(null, cachedHtml);
   }
+  var currentUrl = targetUrl || 'https://web.stremio.com/';
+  var currentDepth = depth || 0;
+  if (currentDepth > 3) return cb(new Error('Too many redirects'));
 
-  var req = https.get('https://web.stremio.com/', { headers: { 'User-Agent': 'Mozilla/5.0 (SMART-TV; Linux; Tizen 6.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36 dxbi-tv/2.35.1' } }, function(res) {
+  var req = https.get(currentUrl, { headers: { 'User-Agent': 'Mozilla/5.0 (SMART-TV; Linux; Tizen 6.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36 hank-tv/2.35.1 (LG webOS)' } }, function(res) {
     if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-      return cb(new Error('Redirected'));
+      var nextUrl = url.resolve(currentUrl, res.headers.location);
+      return fetchStremioHtml(cb, nextUrl, currentDepth + 1);
     }
     var body = '';
     res.setEncoding('utf8');
@@ -75,14 +82,19 @@ function fetchStremioHtml(cb) {
 
       // Inject Hank scripts & styles
       var injections = [
-        '<title>Hank</title>',
         '<link rel="stylesheet" href="/dxbi.theme.css">',
         '<script src="/hank-webos.js"></script>',
         '<script src="/dxbi.plugin.js"></script>'
       ].join('');
 
-      // Replace <title> or insert before </head>
       var modified = body;
+      // Replace existing <title> tag with Hank, or insert it
+      if (/<title>.*?<\/title>/i.test(modified)) {
+        modified = modified.replace(/<title>.*?<\/title>/i, '<title>Hank</title>');
+      } else {
+        injections = '<title>Hank</title>' + injections;
+      }
+
       if (modified.indexOf('</head>') !== -1) {
         modified = modified.replace('</head>', injections + '</head>');
       } else {
@@ -99,7 +111,7 @@ function fetchStremioHtml(cb) {
     if (cachedHtml) return cb(null, cachedHtml);
     cb(err);
   });
-  req.setTimeout(8000, function() { req.abort(); });
+  req.setTimeout(8000, function() { if (req.destroy) req.destroy(); else req.abort(); });
 }
 
 function proxyStremio(req, res) {
@@ -135,8 +147,12 @@ var server = http.createServer(function(req, res) {
 
   // Healthcheck
   if (pathname === '/favicon.ico') {
-    res.writeHead(200, { 'Content-Type': 'image/x-icon', 'Content-Length': '0' });
-    return res.end();
+    res.writeHead(200, {
+      'Content-Type': 'image/png',
+      'Content-Length': TRANSPARENT_PNG.length,
+      'Access-Control-Allow-Origin': '*'
+    });
+    return res.end(TRANSPARENT_PNG);
   }
 
   // Local assets

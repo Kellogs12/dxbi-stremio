@@ -17,6 +17,10 @@ import { fileURLToPath } from "node:url";
 import zlib from "node:zlib";
 
 const target = process.argv[2];
+if (!target) {
+  console.log("usage: node tools/external-player-test.mjs <app executable or main.js> [mpv path] [screenshot path]");
+  process.exit(0);
+}
 const mpvPath = process.argv[3] || "";
 const shotPath = process.argv[4] || "";
 const PORT = 9334;

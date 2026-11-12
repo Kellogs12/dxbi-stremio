@@ -243,7 +243,7 @@ class Stremio(context: Context, val engine: Engine, private val scope: Coroutine
      */
     suspend fun downloadStream(type: String, metaId: String, videoId: String, quality: String): Result<JSONObject> = runCatching {
         val args = JSONObject().put("method", "phone.download").put("args", JSONArray(listOf(type, metaId, videoId, quality)))
-        val answer = engine.call("dx", args, 60_000) as? JSONObject ?: error("dx.bi didn't answer. Try again.")
+        val answer = engine.call("dx", args, 60_000) as? JSONObject ?: error("Hank didn't answer. Try again.")
         answer.optJSONObject("stream") ?: error(answer.optString("error").ifEmpty { "Couldn't find a stream to download." })
     }
 

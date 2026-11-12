@@ -2,12 +2,13 @@
 // and the Android bridge is still there. A change upstream that renames or reshapes one of these fails here,
 // in the fork's sync pull request, before it reaches a phone.
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (path) => readFileSync(join(root, path), "utf8");
+const exists = (path) => existsSync(join(root, path));
 const plugin = read("dxbi.plugin.js");
 const tv = read("tv/app/src/main/assets/dxbi-tv.js");
 const engine = read("tv/app/src/mobile/assets/dxbi-engine.js");
@@ -73,7 +74,7 @@ console.log("PASS the play handoff keeps its fields and callbacks");
 const used = new Set([...tv.matchAll(/bridge\.(\w+)\(/g), ...engine.matchAll(/bridge\.(\w+)\(/g)].map((m) => m[1]));
 const offered = new Set([...bridge.matchAll(/@JavascriptInterface\s+fun (\w+)/g)].map((m) => m[1]));
 // (the iPhone page's own: it can't reach an http:// streaming server itself, Android's page can)
-const iphonePage = read("ios/Dxbi/Engine/Page.swift");
+const iphonePage = exists("ios/Hank/Engine/Page.swift") ? read("ios/Hank/Engine/Page.swift") : read("ios/Dxbi/Engine/Page.swift");
 const iphoneOnly = new Set(["serverUp"]);
 for (const name of used) assert.ok(offered.has(name) || iphoneOnly.has(name), `Bridge.kt offers ${name}`);
 for (const name of iphoneOnly) assert.ok(iphonePage.includes(`${name}: (t,`), `the iPhone page offers ${name}`);

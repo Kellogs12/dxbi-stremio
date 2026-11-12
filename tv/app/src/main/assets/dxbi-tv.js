@@ -31,8 +31,6 @@
   tv.deviceInfo = () => native.deviceInfo();
   // the device clock's offset from UTC in minutes (the plugin's deviceClock)
   tv.utcOffset = () => native.utcOffset();
-  // the app plays the intro film itself (Intro.kt): the plugin's splash stays out of the way
-  tv.nativeIntro = true;
 
   // ---------------------------------------------------------------------------
   // Fit the page to the TV: lay it out 1280 CSS pixels wide (a 10-foot size on any screen). A phone
