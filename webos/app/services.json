@@ -1,0 +1,7 @@
+{
+  "services": [
+    {
+      "name": "com.kellogs12.hank.tv.server"
+    }
+  ]
+}

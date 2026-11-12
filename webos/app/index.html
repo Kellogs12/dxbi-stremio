@@ -1,0 +1,141 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1920, height=1080, user-scalable=no">
+  <title>Hank</title>
+  <style>
+    body {
+      background: #0b0b0d;
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #f4f4f5;
+      user-select: none;
+      overflow: hidden;
+    }
+    .logo {
+      font-size: 72px;
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      color: #e50914;
+      text-shadow: 0 4px 24px rgba(229, 9, 20, 0.45);
+      margin-bottom: 24px;
+    }
+    .status {
+      font-size: 22px;
+      font-weight: 500;
+      color: #8a8a96;
+      margin-bottom: 32px;
+    }
+    .bar {
+      width: 240px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+      overflow: hidden;
+      position: relative;
+    }
+    .bar::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 40%;
+      background: #e50914;
+      border-radius: 2px;
+      animation: sweep 1.5s ease-in-out infinite alternate;
+    }
+    @keyframes sweep {
+      from { left: 0; }
+      to { left: 60%; }
+    }
+    .error-box {
+      display: none;
+      text-align: center;
+      max-width: 600px;
+      padding: 24px;
+    }
+    .btn {
+      padding: 12px 32px;
+      font-size: 20px;
+      font-weight: 700;
+      background: #e50914;
+      color: #fff;
+      border: 0;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 24px;
+      outline: none;
+    }
+    .btn:focus {
+      box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.5);
+    }
+  </style>
+</head>
+<body>
+  <div id="loader">
+    <div class="logo">HANK</div>
+    <div class="status" id="status-text">Starting Hank…</div>
+    <div class="bar"></div>
+  </div>
+
+  <div id="error-view" class="error-box">
+    <div class="logo">HANK</div>
+    <div style="font-size: 26px; font-weight: 700; margin-bottom: 12px;">Couldn't start background service</div>
+    <div style="color: #8a8a96; font-size: 18px; line-height: 1.5;">The Hank TV local service didn't answer. Please ensure developer mode or Homebrew Channel has background service execution allowed.</div>
+    <button class="btn" id="retry-btn" onclick="location.reload()">Retry</button>
+  </div>
+
+  <script>
+    (function() {
+      var redirected = false;
+      function go() {
+        if (redirected) return;
+        redirected = true;
+        location.replace('http://127.0.0.1:8080/');
+      }
+
+      // 1. Try webOS PalmServiceBridge Luna bus
+      if (typeof PalmServiceBridge !== 'undefined') {
+        try {
+          var bridge = new PalmServiceBridge();
+          bridge.onservicecallback = function(res) {
+            try {
+              var data = JSON.parse(res);
+              if (data && data.ready) go();
+            } catch (_) {}
+          };
+          bridge.call('luna://com.kellogs12.hank.tv.server/start', '{}');
+        } catch (err) {
+          console.warn('Luna bridge call error', err);
+        }
+      }
+
+      // 2. Poll HTTP healthcheck on 127.0.0.1:8080
+      var pollCount = 0;
+      var interval = setInterval(function() {
+        if (redirected) { clearInterval(interval); return; }
+        pollCount++;
+        var img = new Image();
+        img.onload = function() { clearInterval(interval); go(); };
+        img.src = 'http://127.0.0.1:8080/favicon.ico?' + Date.now();
+
+        if (pollCount > 25) { // 25 attempts (~12.5 seconds)
+          clearInterval(interval);
+          if (!redirected) {
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('error-view').style.display = 'block';
+            document.getElementById('retry-btn').focus();
+          }
+        }
+      }, 500);
+    })();
+  </script>
+</body>
+</html>

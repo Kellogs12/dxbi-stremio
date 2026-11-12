@@ -1,0 +1,9 @@
+{
+  "id": "com.kellogs12.hank.tv.server",
+  "description": "Hank webOS Server",
+  "services": [
+    {
+      "name": "com.kellogs12.hank.tv.server"
+    }
+  ]
+}

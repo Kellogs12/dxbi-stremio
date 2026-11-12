@@ -130,7 +130,7 @@ Good to know:
 
 - Debrid streams and torrents both play straight away: dx.bi TV downloads torrents itself, so no computer or streaming server is needed. On a slow stick you can hand torrents to the dx.bi app (or Stremio) on a computer instead: keep it running on the same network, then on the TV open *Settings → Streaming server for torrents → Find*. If Windows asks whether to let dx.bi use private networks, allow it.
 
-- Not supported: LG (webOS), Samsung (Tizen), Roku and Apple TV can't install Android apps. A cheap Google TV or Fire TV stick plugged into one of them works. The 2025 *Fire TV Stick 4K Select* runs Amazon's Vega OS instead of Fire OS and can't install dx.bi either.
+- LG (webOS): Supported via the [Hank webOS TV package](webos/README.md). Install via webOS Dev Manager or Developer Mode. Samsung (Tizen), Roku and Apple TV can't install Android apps (a cheap Google TV or Fire TV stick works for those).
 
 - If dx.bi says the TV needs an update, update *Android System WebView* from the Play Store (on Fire TV: *Settings → My Fire TV → About → Check for Updates*).
 
@@ -589,7 +589,7 @@ With the plugin, that comes from a preview build of Stremio Enhanced (the dx.bi 
 
 ### Does it work on my phone or TV?
 
-On Android TV, Google TV and Fire TV, yes: see [On a TV](#on-a-tv). Android phones and tablets have their own app, [dx.bi for Android](#on-an-android-phone), and iPhones have [dx.bi for iPhone](#on-an-iphone) (iOS 18 or later). LG (webOS) and Samsung (Tizen) TVs aren't supported.
+On Android TV, Google TV and Fire TV, yes: see [On a TV](#on-a-tv). LG webOS TVs are supported via [Hank for webOS](webos/README.md). Android phones and tablets have their own app, [Hank for Android](#on-an-android-phone), and iPhones have [Hank for iPhone](#on-an-iphone) (iOS 18 or later). Samsung (Tizen) TVs aren't supported.
 
 ### A friend can't connect to a party
 
