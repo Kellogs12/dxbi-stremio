@@ -160,20 +160,28 @@ body #app [class*="main-nav-bars-container"] > nav[class*="horizontal-nav-bar"][
 }
 
 /* Wordmark */
-#app nav[class*="horizontal-nav-bar"] [class*="logo-container"] {
+#app nav[class*="horizontal-nav-bar"] [class*="logo-container"],
+#app nav [class*="logo-container"],
+#app [class*="main-nav-bars-container"] [class*="logo-container"] {
     flex: none;
     margin-right: auto;
-    width: 6.5rem;
+    min-width: 6.5rem;
+    width: auto;
     height: var(--dx-nav-h);
     justify-content: flex-start;
     order: 0;
 }
 
-#app nav[class*="horizontal-nav-bar"] [class*="logo-container"] img {
+#app nav [class*="logo-container"] img,
+#app nav [class*="logo-container"] svg,
+#app [class*="main-nav-bars-container"] [class*="logo-container"] img,
+#app [class*="main-nav-bars-container"] [class*="logo-container"] svg {
     display: none !important;
 }
 
-#app nav[class*="horizontal-nav-bar"] [class*="logo-container"]::before {
+#app nav[class*="horizontal-nav-bar"] [class*="logo-container"]::before,
+#app nav [class*="logo-container"]::before,
+#app [class*="main-nav-bars-container"] [class*="logo-container"]::before {
     content: "HANK";
     font-family: "Bebas Neue", "Inter", sans-serif;
     font-size: 2.35rem;
