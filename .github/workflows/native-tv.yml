@@ -1,0 +1,101 @@
+name: Native Fire TV App
+
+# Builds Hank TV Native (60 FPS Leanback Android TV / Fire TV app)
+# by rebranding and repacking official native Stremio 1.10.4.
+on:
+  push:
+    paths:
+      - 'tools/rebrand_native_tv.py'
+      - '.github/workflows/native-tv.yml'
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-native:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Setup signing key
+        run: |
+          if [ -n "${{ secrets.DXBI_TV_KEYSTORE_B64 }}" ]; then
+            echo "${{ secrets.DXBI_TV_KEYSTORE_B64 }}" | base64 -d > "$RUNNER_TEMP/hank-tv.jks"
+            echo "KEYSTORE_PASS=${{ secrets.DXBI_TV_KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
+            echo "KEY_PASS=${{ secrets.DXBI_TV_KEY_PASSWORD || secrets.DXBI_TV_KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
+            echo "KEY_ALIAS=${{ secrets.DXBI_TV_KEY_ALIAS || 'dxbi-tv' }}" >> $GITHUB_ENV
+          else
+            echo "Generating release signing keystore..."
+            keytool -genkey -v -keystore "$RUNNER_TEMP/hank-tv.jks" -alias hank-tv -keyalg RSA -keysize 2048 -validity 10000 -storepass hankpassword -keypass hankpassword -dname "CN=Hank, OU=Hank, O=Hank, L=Unknown, S=Unknown, C=US"
+            echo "KEYSTORE_PASS=hankpassword" >> $GITHUB_ENV
+            echo "KEY_PASS=hankpassword" >> $GITHUB_ENV
+            echo "KEY_ALIAS=hank-tv" >> $GITHUB_ENV
+          fi
+
+      - name: Install Apktool
+        run: |
+          mkdir -p "$HOME/bin"
+          curl -sL https://raw.githubusercontent.com/iBotPeaches/Apktool/master/scripts/linux/apktool -o "$HOME/bin/apktool"
+          curl -sL https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.10.0.jar -o "$HOME/bin/apktool.jar"
+          chmod +x "$HOME/bin/apktool"
+          echo "$HOME/bin" >> $GITHUB_PATH
+
+      - name: Download Official Stremio Android TV APK
+        run: |
+          curl -sL -o stremio-tv-arm7.apk "https://dl.strem.io/android/v1.10.4-androidTV/com.stremio.one-1.10.4-31048580-armeabi-v7a.apk"
+          echo "Downloaded APK size: $(ls -lh stremio-tv-arm7.apk | awk '{print $5}')"
+
+      - name: Decompile APK
+        run: |
+          apktool d stremio-tv-arm7.apk -o stremio-decoded -f
+
+      - name: Rebrand to Hank
+        run: |
+          python3 tools/rebrand_native_tv.py stremio-decoded tv/app/src/main/res/drawable/banner.png tv/app/src/main/res/mipmap-xhdpi/ic_launcher.png
+
+      - name: Rebuild APK
+        run: |
+          apktool b stremio-decoded -o hank-tv-native-unsigned.apk
+
+      - name: Align and Sign APK
+        run: |
+          BUILD_TOOLS=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -n 1)
+          echo "Using Android Build Tools at: $BUILD_TOOLS"
+          "$BUILD_TOOLS/zipalign" -v -p 4 hank-tv-native-unsigned.apk hank-tv-native-aligned.apk
+          "$BUILD_TOOLS/apksigner" sign --ks "$RUNNER_TEMP/hank-tv.jks" \
+            --ks-pass "pass:$KEYSTORE_PASS" \
+            --ks-key-alias "$KEY_ALIAS" \
+            --key-pass "pass:$KEY_PASS" \
+            --out hank-tv-native.apk hank-tv-native-aligned.apk
+          "$BUILD_TOOLS/apksigner" verify hank-tv-native.apk
+          ls -lh hank-tv-native.apk
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hank-tv-native
+          path: hank-tv-native.apk
+          if-no-files-found: error
+
+      - name: Attach to Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # If a release exists for the current tag or v2.35.1, attach the native apk
+          TARGET_TAG="${{ github.event.release.tag_name || 'v2.35.1' }}"
+          if gh release view "$TARGET_TAG" >/dev/null 2>&1; then
+            echo "Attaching hank-tv-native.apk to release $TARGET_TAG..."
+            gh release upload "$TARGET_TAG" hank-tv-native.apk --clobber
+          else
+            echo "Release $TARGET_TAG not found; keeping artifact only."
+          fi
