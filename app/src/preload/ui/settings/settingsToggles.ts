@@ -79,7 +79,7 @@ export function setupGpuDropdown() {
             await alertAPI.showAlert(
                 "info",
                 "Restart Required",
-                "Your hardware acceleration settings have been saved. Please restart dx.bi to apply the changes.",
+                "Your hardware acceleration settings have been saved. Please restart Hank to apply the changes.",
                 ["OK"]
             );
         });
@@ -162,14 +162,14 @@ export function setupMpvPlayerToggle(): void {
         </div>
     </div>
 </div>
-<p style="color:rgb(204, 204, 204);">mpv plays every format as it is (HEVC, Dolby Vision, AV1, DTS, TrueHD, embedded subtitles) with hardware decoding, like Stremio's own app. Switch it off to use the browser's player instead. Opening streams in VLC or mpv as separate apps is the External player setting below. Applies after restarting dx.bi.</p>`;
+<p style="color:rgb(204, 204, 204);">mpv plays every format as it is (HEVC, Dolby Vision, AV1, DTS, TrueHD, embedded subtitles) with hardware decoding, like Stremio's own app. Switch it off to use the browser's player instead. Opening streams in VLC or mpv as separate apps is the External player setting below. Applies after restarting Hank.</p>`;
         option.insertAdjacentHTML("beforebegin", html);
         const toggle = document.getElementById("dxbiMpvPlayer");
         toggle?.addEventListener("click", () => {
             toggle.classList.toggle(CLASSES.CHECKED);
             const on = toggle.classList.contains(CLASSES.CHECKED);
             ipcRenderer.send(IPC_CHANNELS.MPV_SET_ENABLED, on);
-            alertAPI.showAlert("info", "Video player changed", "Restart dx.bi to use the new player.", ["OK"]);
+            alertAPI.showAlert("info", "Video player changed", "Restart Hank to use the new player.", ["OK"]);
         });
     }).catch(() => {});
 }

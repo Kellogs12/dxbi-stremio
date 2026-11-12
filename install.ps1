@@ -37,7 +37,7 @@ try {
 Write-Host ''
 Write-Host 'Done. Now in Stremio Enhanced:' -ForegroundColor White
 Write-Host '  1. Restart the app'
-Write-Host '  2. Settings -> Enhanced -> Plugins -> switch "dx.bi" on (the theme is built in)'
+Write-Host '  2. Settings -> Enhanced -> Plugins -> switch "Hank" on (the theme is built in)'
 Write-Host ''
 Write-Host 'Made for Stremio Enhanced 1.2.0 (the latest full release, not a preview build).'
 Write-Host 'Tip: turn off Dynamic Hero, Horizontal Navigation, Enhanced Covers and Enhanced Title Bar if you use them.'

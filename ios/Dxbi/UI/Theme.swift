@@ -16,11 +16,11 @@ enum Dx {
 struct Logo: View {
     var size: CGFloat = 30
     var body: some View {
-        Text("DX.BI")
+        Text("HANK")
             .font(.custom("BebasNeue-Regular", size: size))
             .foregroundStyle(Dx.accent)
             .shadow(color: Dx.accent.opacity(0.55), radius: size / 5)
-            .accessibilityLabel("dx.bi")
+            .accessibilityLabel("Hank")
     }
 }
 

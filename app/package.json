@@ -22,7 +22,7 @@
 		"provider": "github",
 		"releaseType": "release"
 	},
-	"author": "dx.bi",
+	"author": "Hank",
 	"license": "GPL-3.0-or-later",
 	"devDependencies": {
 		"@types/unzipper": "^0.10.11",

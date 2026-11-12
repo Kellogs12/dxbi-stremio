@@ -51,7 +51,7 @@
     text = text.replace(/\bthis PC\b/g, own).replace(/\bthis computer\b/g, own);
     if (!PHONE) return text;
     return text.replace(/ On a TV, only[^.]*\./, "").replace(/\bthis TV's\b/g, "this phone's").replace(/\bthis TV\b/g, "this phone")
-      .replace(/\bdx\.bi TV\b/g, "dx.bi").replace(/under your profile menu → /g, "in Profile → ").replace(/in your profile menu\b/g, "in Profile");
+      .replace(/\b(?:dx\.bi|Hank) TV\b/g, "Hank").replace(/under your profile menu → /g, "in Profile → ").replace(/in your profile menu\b/g, "in Profile");
   };
   const upright = () => PHONE && window.screen && screen.height > screen.width;
   let VIEWPORT = "width=1280, user-scalable=no";
@@ -151,9 +151,9 @@
     showAlert: (type, title, message, buttons) => dialog({ title, message, buttons: buttons && buttons.length ? buttons : ["OK"] }),
     showPrompt: (plugin, title, message, defaultValue) => dialog({ title, message, buttons: ["OK", "Cancel"], input: defaultValue == null ? "" : String(defaultValue) })
       .then((r) => (r && r.button === 0 ? r.value : null)),
-    // dx.bi's "Open in mpv / VLC" goes to the app's own player here
+    // Hank's "Open in mpv / VLC" goes to the app's own player here
     launchExternalPlayer: async (player, url) => {
-      native.play(JSON.stringify({ url, title: document.title || "dx.bi", hash: location.hash }));
+      native.play(JSON.stringify({ url, title: document.title || "Hank", hash: location.hash }));
       return { success: true };
     },
     getExternalPlayerPaths: async () => ({ vlc: null, mpv: null }),
@@ -287,13 +287,13 @@
   // server the choice to let this TV play it is still there
   async function findServer(playHere) {
     for (;;) {
-      toast("Looking for dx.bi or Stremio on your network…", 6000);
+      toast("Looking for Hank or Stremio on your network…", 6000);
       const urls = await scanForServers();
       document.querySelectorAll(".dxtv-toast").forEach((n) => n.remove());
       if (!urls.length) {
         const again = await dialog({
           title: "No streaming server found",
-          message: "Open dx.bi or Stremio on a computer connected to the same network as this TV, leave it running, then try again. On Windows, it also has to be allowed through the firewall on private networks.\n\nDebrid streams play without a streaming server.",
+          message: "Open Hank or Stremio on a computer connected to the same network as this TV, leave it running, then try again. On Windows, it also has to be allowed through the firewall on private networks.\n\nDebrid streams play without a streaming server.",
           buttons: playHere ? ["Try again", "Play it on this TV", "Close"] : ["Try again", "Close"],
         });
         if (again === 0) continue;
@@ -315,10 +315,10 @@
   // Report a problem: a description typed with the remote, then the plugin's report goes to the developer
   const reportProblem = tv.reportProblem = async () => {
     const dx = window.__dxbi;
-    if (!dx || !dx.report) { toast("dx.bi hasn't finished loading yet. Try again in a moment."); return; }
+    if (!dx || !dx.report) { toast("Hank hasn't finished loading yet. Try again in a moment."); return; }
     const r = await dialog({
       title: "Report a problem",
-      message: "What went wrong, and what were you doing? dx.bi adds its version, this TV's model, your settings, addon names and recent errors. No passwords, keys or stream links are sent.",
+      message: "What went wrong, and what were you doing? Hank adds its version, this TV's model, your settings, addon names and recent errors. No passwords, keys or stream links are sent.",
       buttons: ["Send report", "Cancel"],
       input: "",
     });
@@ -327,19 +327,19 @@
     try {
       const code = await dx.report.send(r.value || "");
       document.querySelectorAll(".dxtv-toast").forEach((n) => n.remove());
-      await dialog({ title: "Report sent", message: `Thanks! Your report code is ${code}.\nPost it in dx.bi's Discord (#bug-reports) so it can be matched to you.`, buttons: ["OK"] });
+      await dialog({ title: "Report sent", message: `Thanks! Your report code is ${code}.\nPost it in Hank's Discord (#bug-reports) so it can be matched to you.`, buttons: ["OK"] });
     } catch (err) {
       document.querySelectorAll(".dxtv-toast").forEach((n) => n.remove());
       await dialog({ title: "Couldn't send the report", message: (err && err.message) || "Try again in a moment.", buttons: ["OK"] });
     }
   };
 
-  // Support dx.bi: many TVs have no browser, so a TV shows a code for the phone instead of a link
+  // Support Hank: many TVs have no browser, so a TV shows a code for the phone instead of a link
   const DONATE_URL = "https://buymeacoffee.com/notdxbi";
   const DONATE_QR = "M0 0h7v1h-7zM8 0h1v1h-1zM10 0h2v1h-2zM13 0h1v1h-1zM17 0h4v1h-4zM22 0h7v1h-7zM0 1h1v1h-1zM6 1h1v1h-1zM12 1h2v1h-2zM22 1h1v1h-1zM28 1h1v1h-1zM0 2h1v1h-1zM2 2h3v1h-3zM6 2h1v1h-1zM8 2h1v1h-1zM12 2h4v1h-4zM20 2h1v1h-1zM22 2h1v1h-1zM24 2h3v1h-3zM28 2h1v1h-1zM0 3h1v1h-1zM2 3h3v1h-3zM6 3h1v1h-1zM8 3h1v1h-1zM11 3h2v1h-2zM15 3h1v1h-1zM18 3h1v1h-1zM20 3h1v1h-1zM22 3h1v1h-1zM24 3h3v1h-3zM28 3h1v1h-1zM0 4h1v1h-1zM2 4h3v1h-3zM6 4h1v1h-1zM8 4h1v1h-1zM11 4h1v1h-1zM15 4h2v1h-2zM19 4h2v1h-2zM22 4h1v1h-1zM24 4h3v1h-3zM28 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM8 5h2v1h-2zM12 5h2v1h-2zM17 5h3v1h-3zM22 5h1v1h-1zM28 5h1v1h-1zM0 6h7v1h-7zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h1v1h-1zM16 6h1v1h-1zM18 6h1v1h-1zM20 6h1v1h-1zM22 6h7v1h-7zM9 7h5v1h-5zM16 7h3v1h-3zM20 7h1v1h-1zM2 8h6v1h-6zM10 8h1v1h-1zM13 8h1v1h-1zM18 8h1v1h-1zM21 8h1v1h-1zM23 8h4v1h-4zM28 8h1v1h-1zM0 9h6v1h-6zM7 9h2v1h-2zM14 9h1v1h-1zM17 9h2v1h-2zM21 9h1v1h-1zM25 9h4v1h-4zM0 10h2v1h-2zM3 10h2v1h-2zM6 10h2v1h-2zM13 10h3v1h-3zM18 10h2v1h-2zM24 10h1v1h-1zM0 11h1v1h-1zM3 11h1v1h-1zM10 11h2v1h-2zM17 11h1v1h-1zM20 11h1v1h-1zM25 11h2v1h-2zM28 11h1v1h-1zM0 12h4v1h-4zM5 12h2v1h-2zM8 12h3v1h-3zM16 12h1v1h-1zM18 12h1v1h-1zM20 12h4v1h-4zM27 12h2v1h-2zM0 13h3v1h-3zM9 13h3v1h-3zM17 13h3v1h-3zM25 13h2v1h-2zM0 14h2v1h-2zM3 14h1v1h-1zM6 14h2v1h-2zM9 14h2v1h-2zM12 14h1v1h-1zM15 14h1v1h-1zM17 14h2v1h-2zM20 14h1v1h-1zM23 14h1v1h-1zM25 14h3v1h-3zM0 15h5v1h-5zM9 15h5v1h-5zM17 15h3v1h-3zM22 15h1v1h-1zM24 15h1v1h-1zM26 15h2v1h-2zM1 16h1v1h-1zM4 16h1v1h-1zM6 16h3v1h-3zM10 16h1v1h-1zM13 16h1v1h-1zM15 16h1v1h-1zM18 16h1v1h-1zM21 16h1v1h-1zM25 16h1v1h-1zM28 16h1v1h-1zM0 17h2v1h-2zM3 17h2v1h-2zM8 17h3v1h-3zM12 17h3v1h-3zM16 17h3v1h-3zM20 17h1v1h-1zM24 17h1v1h-1zM28 17h1v1h-1zM0 18h1v1h-1zM4 18h1v1h-1zM6 18h1v1h-1zM8 18h2v1h-2zM13 18h1v1h-1zM15 18h1v1h-1zM17 18h1v1h-1zM23 18h1v1h-1zM25 18h1v1h-1zM27 18h1v1h-1zM0 19h1v1h-1zM2 19h1v1h-1zM4 19h1v1h-1zM7 19h3v1h-3zM13 19h1v1h-1zM17 19h1v1h-1zM19 19h1v1h-1zM22 19h2v1h-2zM26 19h1v1h-1zM28 19h1v1h-1zM0 20h2v1h-2zM4 20h1v1h-1zM6 20h2v1h-2zM10 20h2v1h-2zM13 20h3v1h-3zM17 20h1v1h-1zM19 20h7v1h-7zM27 20h1v1h-1zM9 21h1v1h-1zM13 21h2v1h-2zM17 21h2v1h-2zM20 21h1v1h-1zM24 21h1v1h-1zM26 21h1v1h-1zM0 22h7v1h-7zM8 22h2v1h-2zM13 22h1v1h-1zM17 22h1v1h-1zM19 22h2v1h-2zM22 22h1v1h-1zM24 22h1v1h-1zM26 22h3v1h-3zM0 23h1v1h-1zM6 23h1v1h-1zM8 23h4v1h-4zM13 23h2v1h-2zM16 23h5v1h-5zM24 23h3v1h-3zM0 24h1v1h-1zM2 24h3v1h-3zM6 24h1v1h-1zM8 24h3v1h-3zM13 24h2v1h-2zM17 24h8v1h-8zM26 24h1v1h-1zM28 24h1v1h-1zM0 25h1v1h-1zM2 25h3v1h-3zM6 25h1v1h-1zM8 25h1v1h-1zM11 25h2v1h-2zM14 25h1v1h-1zM16 25h1v1h-1zM21 25h2v1h-2zM25 25h3v1h-3zM0 26h1v1h-1zM2 26h3v1h-3zM6 26h1v1h-1zM8 26h1v1h-1zM12 26h1v1h-1zM14 26h1v1h-1zM16 26h3v1h-3zM20 26h3v1h-3zM24 26h3v1h-3zM28 26h1v1h-1zM0 27h1v1h-1zM6 27h1v1h-1zM11 27h1v1h-1zM15 27h1v1h-1zM19 27h3v1h-3zM23 27h5v1h-5zM0 28h7v1h-7zM9 28h1v1h-1zM13 28h1v1h-1zM17 28h1v1h-1zM20 28h2v1h-2zM25 28h1v1h-1z";
   const donate = () => {
     if (PHONE) { native.openExternal(DONATE_URL); return; }
-    dialog({ title: "Support dx.bi", message: "Scan this with your phone, or go to buymeacoffee.com/notdxbi", qr: DONATE_QR, buttons: ["Done"] });
+    dialog({ title: "Support Hank", message: "Scan this with your phone, or go to buymeacoffee.com/notdxbi", qr: DONATE_QR, buttons: ["Done"] });
   };
 
   // dx.bi's settings: an entry at the top of Stremio's Settings, opening a list made for the remote
@@ -365,7 +365,7 @@
     };
     const render = (focusKey) => {
       const current = values();
-      el.innerHTML = `<div class="dxtv-sheet" role="dialog"><h2>dx.bi settings</h2>
+      el.innerHTML = `<div class="dxtv-sheet" role="dialog"><h2>Hank settings</h2>
         ${schema.map((o, i) => {
           const v = current[o.key] === undefined ? o.defaultValue : current[o.key];
           // a heading wherever a new group of settings starts
@@ -428,8 +428,8 @@
       const side = document.createElement("div");
       side.className = `${shortcuts.className} dxtv-side`;
       side.tabIndex = 0;
-      side.title = "dx.bi";
-      side.textContent = "dx.bi";
+      side.title = "Hank";
+      side.textContent = "Hank";
       side.addEventListener("click", settingsSheet);
       side.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); settingsSheet(); } });
       shortcuts.after(side);
@@ -439,15 +439,15 @@
     ensureStyle();
     const entry = document.createElement("button");
     entry.className = "dxtv-row dxtv-settings-entry";
-    entry.innerHTML = `<span>dx.bi settings<small>Look, Home rows, previews, trailers, reviews, sounds and more</small></span><b>Open</b>`;
+    entry.innerHTML = `<span>Hank settings<small>Look, Home rows, previews, trailers, reviews, sounds and more</small></span><b>Open</b>`;
     entry.addEventListener("click", settingsSheet);
     const problem = document.createElement("button");
     problem.className = "dxtv-row dxtv-settings-entry";
-    problem.innerHTML = `<span>Report a problem<small>Sends dx.bi's developer the details that help fix it (no passwords, keys or stream links)</small></span><b>Report</b>`;
+    problem.innerHTML = `<span>Report a problem<small>Sends Hank's developer the details that help fix it (no passwords, keys or stream links)</small></span><b>Report</b>`;
     problem.addEventListener("click", reportProblem);
     const server = document.createElement("button");
     server.className = "dxtv-row dxtv-settings-entry";
-    server.innerHTML = forDevice(`<span>Streaming server for torrents<small>Torrents play through dx.bi or Stremio running on a computer on your network, or on this TV if you switch on Play torrents on this TV (dx.bi settings). Debrid streams don't need either</small></span><b>Find</b>`);
+    server.innerHTML = forDevice(`<span>Streaming server for torrents<small>Torrents play through Hank or Stremio running on a computer on your network, or on this TV if you switch on Play torrents on this TV (Hank settings). Debrid streams don't need either</small></span><b>Find</b>`);
     server.addEventListener("click", () => findServer());
     const who = document.createElement("button");
     who.className = "dxtv-row dxtv-settings-entry";
@@ -459,7 +459,7 @@
     layout.addEventListener("click", () => { if (window.__dxbi && window.__dxbi.homeLayout) window.__dxbi.homeLayout.open(); });
     const support = document.createElement("button");
     support.className = "dxtv-row dxtv-settings-entry";
-    support.innerHTML = `<span>Support dx.bi<small>dx.bi is free. If you enjoy it, you can buy its developer a coffee</small></span><b>Open</b>`;
+    support.innerHTML = `<span>Support Hank<small>Hank is free. If you enjoy it, you can buy its developer a coffee</small></span><b>Open</b>`;
     support.addEventListener("click", donate);
     content.prepend(entry, who, layout, server, problem, support);
   }
@@ -646,7 +646,7 @@
       handoff = null;
       if (location.hash === hash) history.back();
       toast(server
-        ? `Couldn't reach your streaming server (${server.replace(/^https?:\/\/|\/$/g, "")}). Check that Stremio or dx.bi is running there, and that this iPhone is on the same network (or the same VPN, like Tailscale).`
+        ? `Couldn't reach your streaming server (${server.replace(/^https?:\/\/|\/$/g, "")}). Check that Stremio or Hank is running there, and that this iPhone is on the same network (or the same VPN, like Tailscale).`
         : "This is a torrent, and it needs a streaming server: set one in Settings, or pick a debrid stream.", 9000);
       return;
     }
@@ -656,7 +656,7 @@
       if (!onTv) {
         const choice = await dialog({
           title: "This stream needs a streaming server",
-          message: "It's a torrent, and this TV has no streaming server. Use the one in dx.bi or Stremio on a computer on your network, or let this TV download it itself (it connects to other people sharing the file).\n\nDebrid streams play without either. To always play torrents on this TV: dx.bi settings → Play torrents on this TV.",
+          message: "It's a torrent, and this TV has no streaming server. Use the one in Hank or Stremio on a computer on your network, or let this TV download it itself (it connects to other people sharing the file).\n\nDebrid streams play without either. To always play torrents on this TV: Hank settings → Play torrents on this TV.",
           buttons: ["Find one on my network", "Play it on this TV", "Cancel"],
         });
         if (choice === 1 && location.hash === hash) onTv = true;
@@ -742,7 +742,7 @@
         opacity: profile.subtitlesOpacity,
       },
       url,
-      title: meta.name || state.title || stream.title || "dx.bi",
+      title: meta.name || state.title || stream.title || "Hank",
       subtitle: episode,
       startMs: resumeMs,
       headers,

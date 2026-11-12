@@ -1,8 +1,8 @@
 /**
- * @name dx.bi
- * @description Netflix-style Stremio: billboard, carousels and hover previews, reviews and ratings, skip intro and up next, a better player, watch parties and more. The dx.bi look is built in.
+ * @name Hank
+ * @description Netflix-style Stremio: billboard, carousels and hover previews, reviews and ratings, skip intro and up next, a better player, watch parties and more. The Hank look is built in.
  * @version 2.35.1
- * @author dx.bi
+ * @author Hank
  * @updateUrl https://raw.githubusercontent.com/Kellogs12/dxbi-stremio/main/dxbi.plugin.js
  */
 // dx.bi — Copyright (C) 2026 dx.bi. Free software under the GNU General Public License, version 3
@@ -179,7 +179,7 @@
         { label: "Mono", value: "white" },
       ],
     },
-    { key: "tvTorrents", type: "toggle", label: "Play torrents on this TV", description: "Off: torrents go through debrid (Real-Debrid, TorBox…) or a streaming server on a computer, and you're asked each time otherwise. On: dx.bi TV downloads torrents itself, connecting to other people sharing them.", defaultValue: DEFAULTS.tvTorrents, tvOnly: true },
+    { key: "tvTorrents", type: "toggle", label: "Play torrents on this TV", description: "Off: torrents go through debrid (Real-Debrid, TorBox…) or a streaming server on a computer, and you're asked each time otherwise. On: Hank TV downloads torrents itself, connecting to other people sharing them.", defaultValue: DEFAULTS.tvTorrents, tvOnly: true },
     {
       key: "focusColour",
       type: "select",
@@ -195,12 +195,12 @@
     },
     { key: "liteMode", type: "select", label: "Lite mode", description: "For slower TV boxes: loads fewer Home rows at once, skips hover cards and sharper posters, and ignores presses that arrive too late. Auto turns on with 2 GB of memory or less.", defaultValue: DEFAULTS.liteMode, tvOnly: true, options: [{ label: "Auto", value: "auto" }, { label: "On", value: "on" }, { label: "Off", value: "off" }] },
     { key: "forYou", type: "toggle", label: "Because you watched", description: "A Home row based on what you watched last, skipped for kids viewers. Popular titles in the same genres, or real recommendations if you add a TMDB key below.", defaultValue: DEFAULTS.forYou },
-    { key: "quickPlay", type: "toggle", label: "Just press Play", description: "Play and episode clicks start the best stream straight away, and dx.bi remembers what you choose. Skips streams that would start a new debrid download.", defaultValue: DEFAULTS.quickPlay },
+    { key: "quickPlay", type: "toggle", label: "Just press Play", description: "Play and episode clicks start the best stream straight away, and Hank remembers what you choose. Skips streams that would start a new debrid download.", defaultValue: DEFAULTS.quickPlay },
     { key: "quickPlayMemory", type: "select", label: "Remember my stream choice", defaultValue: DEFAULTS.quickPlayMemory, options: [{ label: "For each series", value: "series" }, { label: "Everywhere", value: "global" }] },
     { key: "quickPlayQuality", type: "select", label: "Highest quality to pick", defaultValue: DEFAULTS.quickPlayQuality, options: [{ label: "Best available", value: "best" }, { label: "4K", value: "2160" }, { label: "1080p", value: "1080" }, { label: "720p", value: "720" }] },
     { key: "quickPlayFallback", type: "select", label: "If my usual stream is missing", defaultValue: DEFAULTS.quickPlayFallback, options: [{ label: "Play the next best", value: "best" }, { label: "Show me the list", value: "ask" }] },
     { key: "streamRows", type: "toggle", label: "Clean stream list", description: "Shows each stream as a simple row: quality, source, size and whether it's ready to play.", defaultValue: DEFAULTS.streamRows },
-    { key: "builtInTheme", type: "toggle", label: "dx.bi look built in", description: `Use the dx.bi theme without installing it separately. Steps aside by itself when you apply another theme in Settings → ${SETTINGS_SECTION} → Themes.`, defaultValue: DEFAULTS.builtInTheme },
+    { key: "builtInTheme", type: "toggle", label: "Hank look built in", description: `Use the Hank theme without installing it separately. Steps aside by itself when you apply another theme in Settings → ${SETTINGS_SECTION} → Themes.`, defaultValue: DEFAULTS.builtInTheme },
     { key: "videoRowsOnly", type: "toggle", label: "Only movie, series & anime rows on Home", description: "Hides rows from addons that list other things, like a debrid account's downloads or YouTube channels. They stay in Discover.", defaultValue: DEFAULTS.videoRowsOnly },
     { key: "billboard", type: "toggle", label: "Billboard on Home", description: "Large rotating feature banner at the top of Home.", defaultValue: DEFAULTS.billboard },
     {
@@ -229,7 +229,7 @@
     },
     { key: "previews", type: "toggle", label: "Hover previews", description: IN_TV ? "Show a details card when a title stays selected for a moment." : "Show a details card when you rest the mouse on a title.", defaultValue: DEFAULTS.previews },
     { key: "ratings", type: "toggle", label: "Ratings on posters", description: "Small IMDb badge on posters, from your addons' data (Cinemeta fills any gaps). Anime from Kitsu or MyAnimeList catalogs gets its Kitsu or AniList score.", defaultValue: DEFAULTS.ratings },
-    { key: "animeTitles", type: "toggle", label: "Titles on anime artwork", description: "Anime catalogs' cover art usually has no title on it: dx.bi writes the name at the bottom of each card in Home and Search rows.", defaultValue: DEFAULTS.animeTitles },
+    { key: "animeTitles", type: "toggle", label: "Titles on anime artwork", description: "Anime catalogs' cover art usually has no title on it: Hank writes the name at the bottom of each card in Home and Search rows.", defaultValue: DEFAULTS.animeTitles },
     { key: "wideContinue", type: "toggle", label: "Wide Continue Watching", description: "Show Continue Watching as landscape cards with title art.", defaultValue: DEFAULTS.wideContinue },
     { key: "playerExtras", type: "toggle", label: "Netflix-style player extras", description: "Back/forward 10 seconds buttons, title in the control bar and play/pause feedback.", defaultValue: DEFAULTS.playerExtras },
     {
@@ -387,7 +387,7 @@
     { key: "playerKeys", type: "toggle", label: "Extra keyboard shortcuts", description: "0–9 jump to 0–90% of the video, and ? shows every shortcut.", defaultValue: DEFAULTS.playerKeys },
     { key: "watchStats", type: "toggle", label: "Watch stats", description: "Counts how long you watch (on this PC only). See them under your profile menu → Your stats.", defaultValue: DEFAULTS.watchStats },
     { key: "whoIsWatching", type: "toggle", label: "Who's watching?", description: "With more than one viewer, choose who's watching at start. Each viewer has their own library, stats, volume and party name.", defaultValue: DEFAULTS.whoIsWatching },
-    { key: "pip", type: "toggle", label: "Picture-in-picture button", description: "Keep watching in a small floating window while you use other apps. In the dx.bi app it also keeps playing while you browse dx.bi.", defaultValue: DEFAULTS.pip },
+    { key: "pip", type: "toggle", label: "Picture-in-picture button", description: "Keep watching in a small floating window while you use other apps. In the Hank app it also keeps playing while you browse Hank.", defaultValue: DEFAULTS.pip },
     { key: "addonTools", type: "toggle", label: "Addon order & backup", description: "Adds a button to the Addons page to reorder your addons (the order streams and catalogs appear in) and to back them up or restore them.", defaultValue: DEFAULTS.addonTools },
     { key: "externalPlayer", type: "toggle", label: "Open in mpv / VLC button", description: "Adds a button to the player that hands the stream to mpv or VLC (only shown when one is installed). Handy when a file stutters or won't play here: they handle more formats and are lighter on slower PCs.", defaultValue: DEFAULTS.externalPlayer },
     { key: "playerClock", type: "toggle", label: "Show the time in the player", description: "The time now and when this ends, at the top right, while the controls are showing.", defaultValue: DEFAULTS.playerClock },
@@ -413,7 +413,7 @@
     { key: "partySounds", type: "toggle", label: "Watch party: sounds", description: "Soft chimes when people join, leave or send a message.", defaultValue: DEFAULTS.partySounds },
     { key: "splash", type: "toggle", label: "Intro animation", description: "Plays once each time the app starts.", defaultValue: DEFAULTS.splash },
     { key: "introSound", type: "toggle", label: "Intro sound", description: "Play the intro's score (a 'ta-dum', a chord and a whoosh).", defaultValue: DEFAULTS.introSound },
-    { key: "profileSync", type: "toggle", label: "Keep viewers the same on every device", description: "With two or more viewers, your viewers and each one's library, hidden titles and Home follow your Stremio account, through dx.bi's sync server. Your login key is only used to check who you are and is never saved. The parental PIN stays on each device.", defaultValue: DEFAULTS.profileSync },
+    { key: "profileSync", type: "toggle", label: "Keep viewers the same on every device", description: "With two or more viewers, your viewers and each one's library, hidden titles and Home follow your Stremio account, through Hank's sync server. Your login key is only used to check who you are and is never saved. The parental PIN stays on each device.", defaultValue: DEFAULTS.profileSync },
     { key: "uiSounds", type: "toggle", label: "Interface sounds", description: "Soft sounds for tabs, opening titles, previews, My List, player controls and keyboard navigation.", defaultValue: DEFAULTS.uiSounds },
     {
       key: "soundVolume",
@@ -3426,7 +3426,7 @@
           </div>`).join("")}
           ${tmdb.total > tmdb.reviews.length ? `<a class="dxr-link" href="${esc(tmdb.url)}" target="_blank" rel="noopener">All ${esc(tmdb.total)} reviews on TMDB</a>` : ""}</div>`);
       } else if (tmdb && tmdb.error) {
-        parts.push(`<div class="dxe-section"><div class="dxe-label">Audience reviews</div><p class="dxr-note">${esc(tmdb.error)}. Check the key in Settings → ${SETTINGS_SECTION} → Plugins → dx.bi.</p></div>`);
+        parts.push(`<div class="dxe-section"><div class="dxe-label">Audience reviews</div><p class="dxr-note">${esc(tmdb.error)}. Check the key in Settings → ${SETTINGS_SECTION} → Plugins → Hank.</p></div>`);
       } else if (tmdb) {
         parts.push(`<div class="dxe-section"><div class="dxe-label">Audience reviews</div><p class="dxr-note">No one has reviewed this on TMDB yet.</p></div>`);
       }
@@ -3435,7 +3435,7 @@
       const hints = [];
       if (!settings.tmdbKey.trim()) hints.push("a free TMDB key for audience reviews");
       if (!settings.mdblistKey.trim()) hints.push("a free MDBList key for audience and Letterboxd scores");
-      if (hints.length) parts.push(`<p class="dxr-note">Want more? Add ${hints.join(" and ")} in Settings → ${SETTINGS_SECTION} → Plugins → dx.bi.</p>`);
+      if (hints.length) parts.push(`<p class="dxr-note">Want more? Add ${hints.join(" and ")} in Settings → ${SETTINGS_SECTION} → Plugins → Hank.</p>`);
       const credits = [data.fromMdblist ? "Scores from MDBList" : scores.length ? "Scores from Wikidata" : "", wiki && wiki.text && wiki.text.length ? "Summary from Wikipedia (CC BY-SA)" : "", tmdb && tmdb.reviews ? "This product uses the TMDB API but is not endorsed or certified by TMDB" : ""].filter(Boolean);
       if (credits.length) parts.push(`<p class="dxr-credit">${credits.map(esc).join(" · ")}</p>`);
       return parts.join("");
@@ -8585,8 +8585,8 @@
       const chrome = (/Chrome\/([\d.]+)/.exec(ua) || [])[1];
       const hevc = convert.hevc === null ? "not checked" : convert.hevc ? "yes" : convert.hevcBrowser ? "no (played converted before)" : "no";
       return [
-        "dx.bi playback report",
-        `dx.bi ${PLUGIN_VERSION} · ${os}${r.platform ? ` (${r.platform})` : ""} · Chromium ${chrome || "?"}`,
+        "Hank playback report",
+        `Hank ${PLUGIN_VERSION} · ${os}${r.platform ? ` (${r.platform})` : ""} · Chromium ${chrome || "?"}`,
         `Streaming server ${r.server || "?"} · transcode profile: ${r.profile || "Disabled"} · hw accel: ${r.hwAccel}`,
         `Converted: ${convert.active()}${convert.wasGuess() ? " (up front, original not tried)" : ""} · 10-bit HEVC decoding: ${hevc}`,
         `File: ${r.format || "?"} · ${(r.streams || []).join(", ") || r.probe || "?"}`,
@@ -8627,7 +8627,7 @@
           } else if (why.kind === "dll") {
             text = IN_APP
               ? `<b>Windows can't start the streaming server's video tool (ffprobe): a file it needs is missing.</b> Restart ${APP_NAME}: when it starts, it checks the streaming server's ffmpeg and ffprobe and replaces copies that can't run, including the ones Stremio Service's Windows download comes with. If you've installed ffmpeg yourself (it's used first when it's on your PATH), remove or update it. Meanwhile, open this one in mpv or VLC.`
-              : `<b>Windows can't start the streaming server's video tool (ffprobe): a file it needs is missing.</b> If you use <i>Stremio Service</i>, its Windows download comes without the files its ffprobe needs: the dx.bi app repairs that by itself, or choose server.js when ${APP_NAME} starts instead. With server.js, close ${APP_NAME} and delete <i>ffmpeg.exe</i> and <i>ffprobe.exe</i> in <i>%APPDATA%\\stremio-enhanced\\streamingserver</i> so fresh copies are downloaded. If you've installed ffmpeg yourself (it's used first when it's on your PATH), remove or update it. Meanwhile, open this one in mpv or VLC.`;
+              : `<b>Windows can't start the streaming server's video tool (ffprobe): a file it needs is missing.</b> If you use <i>Stremio Service</i>, its Windows download comes without the files its ffprobe needs: the Hank app repairs that by itself, or choose server.js when ${APP_NAME} starts instead. With server.js, close ${APP_NAME} and delete <i>ffmpeg.exe</i> and <i>ffprobe.exe</i> in <i>%APPDATA%\\stremio-enhanced\\streamingserver</i> so fresh copies are downloaded. If you've installed ffmpeg yourself (it's used first when it's on your PATH), remove or update it. Meanwhile, open this one in mpv or VLC.`;
           } else if (why.kind === "source") {
             text = `<b>The streaming server couldn't open this link.</b> Converting means the streaming server reads the file itself, and this source didn't let it: some only answer browsers, and links can expire. ${convert.wasGuess() ? "Try it as it is, pick" : "Pick"} another release, or open this one in mpv or VLC.`;
           } else if (why.kind === "converter") {
@@ -8635,7 +8635,7 @@
           } else if (convert.wasGuess()) {
             // Converted before it was tried: the original may well play (Macs decode HEVC themselves)
             tryOriginal = true;
-            text = "<b>Converting this release didn't work.</b> dx.bi converted it before trying it, because it looked like 10-bit HEVC and this computer seemed unable to play that. Try it as it is, pick another release (x264/H.264 or WEB-DL are the safest), or open it in mpv or VLC.";
+            text = "<b>Converting this release didn't work.</b> Hank converted it before trying it, because it looked like 10-bit HEVC and this computer seemed unable to play that. Try it as it is, pick another release (x264/H.264 or WEB-DL are the safest), or open it in mpv or VLC.";
           } else {
             text = "<b>This release can't play here, even converted.</b> The file may be damaged or in an unusual format. Pick another release (x264/H.264 or WEB-DL are the safest), or open this one in mpv or VLC.";
           }
@@ -8962,7 +8962,7 @@
       if (!this.info || root.querySelector(":scope > .dx-mini-ui")) return;
       const ui = document.createElement("div");
       ui.className = "dx-mini-ui";
-      ui.innerHTML = `<div class="dx-mini-top"><button class="dx-mini-btn is-expand" title="Back to dx.bi">${ICONS.expand}</button><button class="dx-mini-btn is-close" title="Close">${ICONS.close}</button></div>` +
+      ui.innerHTML = `<div class="dx-mini-top"><button class="dx-mini-btn is-expand" title="Back to Hank">${ICONS.expand}</button><button class="dx-mini-btn is-close" title="Close">${ICONS.close}</button></div>` +
         `<button class="dx-mini-btn is-play" title="Play / pause">${ICONS.pause}</button><div class="dx-mini-line"><i></i></div><div class="dx-mini-grip" title="Drag to resize"></div>`;
       const video = () => root.querySelector("video");
       const play = ui.querySelector(".is-play");
@@ -9077,7 +9077,7 @@
             <button class="dxe-btn" data-act="export">Back up</button>
             <button class="dxe-btn" data-act="import">Restore…</button>
             ${this.lastBackup() ? '<button class="dxe-btn" data-act="undo">Undo last change</button>' : ""}
-            ${this.missingPack(profile.addons).length ? '<button class="dxe-btn" data-act="pack">Add dx.bi Home rows</button>' : ""}
+            ${this.missingPack(profile.addons).length ? '<button class="dxe-btn" data-act="pack">Add Hank Home rows</button>' : ""}
             <span class="dxe-spacer"></span>
             <button class="dxe-btn" data-act="close">Close</button>
             <button class="dxe-btn is-primary" data-act="save" disabled>Save order</button>
@@ -9233,10 +9233,10 @@
       }
       try { localStorage.setItem("dxbi.packOffered", "1"); } catch (_) { /* ignore */ }
       const list = missing.map((p) => `• ${p.name}: ${p.what}`).join("\n");
-      const choice = await launcher.showAlert("question", "Set up Home like dx.bi?", `Home's rows come from catalog addons on your Stremio account. Add these free ones (no accounts or keys needed)?\n\n${list}\n\nYou can remove them any time in Addons, or undo from Addons → Order & backup.`, ["Add them", "Not now"]);
+      const choice = await launcher.showAlert("question", "Set up Home like Hank?", `Home's rows come from catalog addons on your Stremio account. Add these free ones (no accounts or keys needed)?\n\n${list}\n\nYou can remove them any time in Addons, or undo from Addons → Order & backup.`, ["Add them", "Not now"]);
       if (choice !== 0) return;
       const added = await this.installPack();
-      if (!added) launcher.showAlert("info", "dx.bi", "Couldn't reach the catalog addons right now. You can add them later from Addons → Order & backup.", ["OK"]);
+      if (!added) launcher.showAlert("info", "Hank", "Couldn't reach the catalog addons right now. You can add them later from Addons → Order & backup.", ["OK"]);
     },
 
     // Replace the account's addon collection, keeping the previous one so it can be undone
@@ -9269,7 +9269,7 @@
     },
 
     exportFile() {
-      const data = { app: "dx.bi", type: "stremio-addons", exported: new Date().toISOString(), addons: this.original };
+      const data = { app: "Hank", type: "stremio-addons", exported: new Date().toISOString(), addons: this.original };
       const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
       const a = Object.assign(document.createElement("a"), { href: url, download: `stremio-addons-${new Date().toISOString().slice(0, 10)}.json` });
       document.body.append(a);
@@ -10771,8 +10771,8 @@
 
     where() {
       // (the report relay knows these three: a phone's report says it's a phone in its device details)
-      if (IN_TV) return "dx.bi TV";
-      if (IN_APP) return "dx.bi app";
+      if (IN_TV) return "Hank TV";
+      if (IN_APP) return "Hank app";
       return "Stremio Enhanced plugin";
     },
 
@@ -10911,7 +10911,7 @@
       for (const type of ["keydown", "keyup", "keypress"]) el.addEventListener(type, (e) => e.stopPropagation());
       el.innerHTML = `<div class="dxe-report-card" role="dialog" aria-label="Report a problem">
         <h2>Report a problem</h2>
-        <p>Say what went wrong and what you were doing. dx.bi adds the details that help fix it: its version, your device, your settings, addon names, how many titles are in your library, and recent errors. No e-mail, passwords, keys or stream links are sent.</p>
+        <p>Say what went wrong and what you were doing. Hank adds the details that help fix it: its version, your device, your settings, addon names, how many titles are in your library, and recent errors. No e-mail, passwords, keys or stream links are sent.</p>
         <textarea rows="5" maxlength="1500" placeholder="e.g. The calendar is empty, even though my library has shows that are airing"></textarea>
         <div class="dxe-report-btns"><span class="dxe-report-status"></span><button class="dxe-btn" data-cancel>Cancel</button><button class="dxe-btn is-primary" data-send>Send report</button></div>
       </div>`;
@@ -10924,7 +10924,7 @@
         status.textContent = "Sending…";
         try {
           const code = await this.send(el.querySelector("textarea").value);
-          el.querySelector(".dxe-report-card").innerHTML = `<h2>Report sent</h2><p>Thanks! Your report code is <b class="dxe-report-code">${esc(code)}</b>. Post it in dx.bi's Discord (#bug-reports) so it can be matched to you.</p><div class="dxe-report-btns"><button class="dxe-btn is-primary" data-close>Done</button></div>`;
+          el.querySelector(".dxe-report-card").innerHTML = `<h2>Report sent</h2><p>Thanks! Your report code is <b class="dxe-report-code">${esc(code)}</b>. Post it in Hank's Discord (#bug-reports) so it can be matched to you.</p><div class="dxe-report-btns"><button class="dxe-btn is-primary" data-close>Done</button></div>`;
         } catch (err) {
           status.textContent = err.message;
           send.disabled = false;
@@ -11206,7 +11206,7 @@
         while (g.measureText(s).width > 930 && s.length > 4) s = `${s.slice(0, -2).trimEnd()}…`;
         g.fillText(s, x, y);
       };
-      text("dx.bi", 80, 120, "800 44px");
+      text("Hank", 80, 120, "800 44px");
       text(`My ${year}`, 80, 240, "800 96px");
       text(hoursText(f.total), 80, 420, "800 124px", accent);
       text("watched", 80, 480, "500 40px", "rgba(255,255,255,.7)");
@@ -11215,7 +11215,7 @@
       text(f.genre ? `Top genre: ${f.genre}` : "", 80, 1110, "600 40px");
       text(`Longest streak: ${f.best} day${f.best === 1 ? "" : "s"}`, 80, 1170, "600 40px");
       const link = document.createElement("a");
-      link.download = `dxbi-${year}.png`;
+      link.download = `hank-${year}.png`;
       link.href = c.toDataURL("image/png");
       link.click();
     },
@@ -11236,7 +11236,7 @@
 
       return `
         <div class="dxe-head">
-          <b>Your stats<small>${esc(viewer.name)} · counted by dx.bi since ${esc(since)} · ${hoursText(total)} in total</small></b>
+          <b>Your stats<small>${esc(viewer.name)} · counted by Hank since ${esc(since)} · ${hoursText(total)} in total</small></b>
           ${viewers.list().list.length > 1 ? '<button class="dxe-btn" data-act="who">Switch viewer</button>' : ""}
           ${IN_TV || tiles[3][1] < 60 ? "" : '<button class="dxe-btn" data-act="year">Save my year</button>'}
           <button class="dxe-btn" data-act="close">Close</button>
@@ -11261,7 +11261,7 @@
               </div>
             </div>
           </div>
-          <p class="dxe-note">Stats stay on this PC (saved with dx.bi's data, per viewer). Only time spent actually playing counts.</p>
+          <p class="dxe-note">Stats stay on this PC (saved with Hank's data, per viewer). Only time spent actually playing counts.</p>
         </div>`;
     },
   };
@@ -11510,7 +11510,7 @@
           <div class="dxe-head"><b>Keyboard shortcuts<small>Press ? any time to open this list</small></b><button class="dxe-btn" data-act="close">Close</button></div>
           <div class="dxe-keys">${SHORTCUTS.map(([group, rows]) => `
             <div class="dxe-section"><div class="dxe-label">${esc(group)}</div>
-              ${rows.map(([k, label, dx]) => `<div class="dxe-key"><span>${esc(label)}${dx ? '<em>dx.bi</em>' : ""}</span><kbd>${esc(k)}</kbd></div>`).join("")}
+              ${rows.map(([k, label, dx]) => `<div class="dxe-key"><span>${esc(label)}${dx ? '<em>Hank</em>' : ""}</span><kbd>${esc(k)}</kbd></div>`).join("")}
             </div>`).join("")}
           </div>
         </div>`;
@@ -15760,10 +15760,10 @@
           if (problem) items = items.filter((x) => x !== next);
           else item = next;
         }
-        if (!item) return { error: problem || (torrents ? "No stream is ready to download yet (the ones there need your debrid service to fetch them first)." : IN_TV ? "No debrid or direct stream for it: torrents can't be downloaded here." : "No debrid or direct stream for it: torrents need dx.bi's streaming server.") };
+        if (!item) return { error: problem || (torrents ? "No stream is ready to download yet (the ones there need your debrid service to fetch them first)." : IN_TV ? "No debrid or direct stream for it: torrents can't be downloaded here." : "No debrid or direct stream for it: torrents need Hank's streaming server.") };
       }
       const st = item.st;
-      if (!st.url && !(st.infoHash && torrents)) return { error: IN_TV ? "Torrents can't be downloaded here. Pick a debrid or direct stream." : "Torrents need dx.bi's streaming server, which isn't running." };
+      if (!st.url && !(st.infoHash && torrents)) return { error: IN_TV ? "Torrents can't be downloaded here. Pick a debrid or direct stream." : "Torrents need Hank's streaming server, which isn't running." };
       const video = (meta.videos || []).find((v) => v.id === videoId);
       const episode = video && video.season != null ? `S${video.season} E${video.episode}${video.title || video.name ? ` · ${video.title || video.name}` : ""}` : "";
       const subtitles = await this.subtitlesFor(type, videoId, st.subtitles).catch(() => []);
@@ -15989,7 +15989,7 @@
       if (!x || !x.play) return;
       const stream = {
         url: x.play.url,
-        name: "dx.bi",
+        name: "Hank",
         title: `Downloaded · ${x.quality || "on this computer"}`,
         subtitles: (x.play.subtitles || []).map((s, i) => ({ id: `dxbi-dl-${i}`, url: s.url, lang: s.lang })),
         behaviorHints: { filename: x.filename || undefined, bingeGroup: `dxbi-download-${x.metaId}` },
@@ -16435,11 +16435,11 @@
           <div class="dxd-set-btns"><button class="dxe-btn is-primary" data-a="pickFolder">Change…</button><button class="dxe-btn" data-a="openFolder">Open</button>${p.defaultFolder && p.folder !== p.defaultFolder ? '<button class="dxe-btn" data-a="resetFolder">Use the default</button>' : ""}</div></div>
         <div class="dxd-set"><div><b>Quality</b><small>What the Download buttons save. "Ask each time" lets you choose for every download, including picking the exact stream yourself.</small></div>
           ${select("quality", [["ask", "Ask each time"], ...DL_QUALITIES.map(([v, l]) => [v, l])])}</div>
-        <div class="dxd-set"><div><b>Delete watched downloads</b><small>A download counts as watched once you play it to the end in dx.bi. You can always delete any download yourself.</small></div>
+        <div class="dxd-set"><div><b>Delete watched downloads</b><small>A download counts as watched once you play it to the end in Hank. You can always delete any download yourself.</small></div>
           ${select("autoDelete", [["off", "Never: I'll delete them"], ["finished", "As soon as I finish one"], ["day", "A day after I finish one"]])}</div>
         <div class="dxd-set"><div><b>Downloads at once</b><small>More at once can be quicker on a fast connection.</small></div>
           ${select("parallel", [[1, "1"], [2, "2"], [3, "3"], [4, "4"]])}</div>
-        <p class="dxe-note">Downloads are ordinary video files with their subtitles beside them, so other players can open them too. Debrid and direct streams download fastest; torrents download through dx.bi's streaming server from the people sharing them.</p>
+        <p class="dxe-note">Downloads are ordinary video files with their subtitles beside them, so other players can open them too. Debrid and direct streams download fastest; torrents download through Hank's streaming server from the people sharing them.</p>
       </div>`;
     },
 
@@ -16597,7 +16597,7 @@
             } : null,
             headers: s.headers,
             subtitles: s.subtitles.map((x, i) => ({ url: x.url, lang: x.lang, label: x.lang, start: i === 0 })),
-            title: s.name || "dx.bi",
+            title: s.name || "Hank",
             subtitle: s.episode,
             background: s.background,
             poster: s.poster,

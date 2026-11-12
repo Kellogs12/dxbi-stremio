@@ -96,7 +96,7 @@ body.drag { cursor: grabbing; }
 body:hover .bar { opacity: 1; }
 button { border: 0; border-radius: 6px; padding: 6px 10px; background: rgba(20,20,20,.85); color: #fff; font: inherit; cursor: pointer; }
 button:hover { background: #fff; color: #000; }
-</style><div class="bar"><button data-say="pause" title="Play / pause">⏯</button><button data-say="back" title="Back to dx.bi">⤢ Back to dx.bi</button></div>
+</style><div class="bar"><button data-say="pause" title="Play / pause">⏯</button><button data-say="back" title="Back to Hank">⤢ Back to Hank</button></div>
 <script>
 let n = 0;
 const say = (what) => { document.title = what + "-" + (++n); };

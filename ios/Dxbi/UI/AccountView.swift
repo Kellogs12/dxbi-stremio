@@ -77,7 +77,7 @@ struct AccountView: View {
                         Avatar(email: stremio.account?.email).scaleEffect(1.6).frame(width: 52, height: 52)
                         VStack(alignment: .leading) {
                             Text(stremio.account?.email ?? "Not signed in").font(.headline)
-                            Text(stremio.account?.signedIn == true ? "Stremio account" : "Using dx.bi without an account").font(.footnote).foregroundStyle(Dx.muted)
+                            Text(stremio.account?.signedIn == true ? "Stremio account" : "Using Hank without an account").font(.footnote).foregroundStyle(Dx.muted)
                         }
                     }
                     .padding(.vertical, 6)
@@ -87,7 +87,7 @@ struct AccountView: View {
                     NavigationLink { DownloadsView() } label: { Label("Downloads", systemImage: "arrow.down.circle.fill") }
                     NavigationLink { StatsView() } label: { Label("Your Stats", systemImage: "chart.bar.fill") }
                     NavigationLink { CustomiseHomeView() } label: { Label("Customise Home", systemImage: "square.stack.3d.up.fill") }
-                    NavigationLink { DxbiSettingsView() } label: { Label("dx.bi Settings", systemImage: "slider.horizontal.3") }
+                    NavigationLink { DxbiSettingsView() } label: { Label("Hank Settings", systemImage: "slider.horizontal.3") }
                     NavigationLink { PlaybackSettingsView() } label: { Label("Playback", systemImage: "play.rectangle.fill") }
                 }
                 Section {
@@ -106,7 +106,7 @@ struct AccountView: View {
                         }
                     }
                 } footer: {
-                    Text("dx.bi \(Page.version) · Not affiliated with Stremio.")
+                    Text("Hank \(Page.version) · Not affiliated with Stremio.")
                 }
             }
             .navigationTitle("Profile")
@@ -228,7 +228,7 @@ struct DxbiSettingsView: View {
                 ProgressView()
             }
         }
-        .navigationTitle("dx.bi Settings")
+        .navigationTitle("Hank Settings")
         .task { settings = await stremio.settings().filter { !Self.webOnly.contains($0.key) } }
     }
 
@@ -279,11 +279,11 @@ struct PlaybackSettingsView: View {
         List {
             Section {
                 Picker("Play videos in", selection: $stremio.otherApp) {
-                    Text("dx.bi").tag(String?.none)
+                    Text("Hank").tag(String?.none)
                     ForEach(OtherApp.all) { app in Text(app.name + (app.installed ? "" : " (not installed)")).tag(String?.some(app.id)) }
                 }
             } footer: {
-                Text("dx.bi's player plays almost anything. Another app keeps no watch progress in Stremio.")
+                Text("Hank's player plays almost anything. Another app keeps no watch progress in Stremio.")
             }
             Section("Languages") {
                 LanguagePicker(title: "Audio", value: settings.string("audioLanguage")) { stremio.updateSettings(["audioLanguage": $0]) }
@@ -299,7 +299,7 @@ struct PlaybackSettingsView: View {
             } header: {
                 Text("Streaming server")
             } footer: {
-                Text("Torrents need Stremio (or dx.bi) running on a computer: put its address here. Debrid streams play without one.")
+                Text("Torrents need Stremio (or Hank) running on a computer: put its address here. Debrid streams play without one.")
             }
         }
         .navigationTitle("Playback")
@@ -346,7 +346,7 @@ struct CustomiseHomeView: View {
                 .onMove { from, to in keys.move(fromOffsets: from, toOffset: to); save() }
                 .tint(Dx.accent)
             } footer: {
-                Text("Drag to reorder. dx.bi saves this to your profile, so your other devices follow it.")
+                Text("Drag to reorder. Hank saves this to your profile, so your other devices follow it.")
             }
         }
         .environment(\.editMode, .constant(.active))

@@ -471,7 +471,7 @@ class DownloadsImpl {
             info = res.ok ? await res.json().catch(() => null) : null;
         } catch (err: any) {
             if (signal.aborted) throw err;
-            throw Object.assign(new Error("dx.bi's streaming server isn't running, so torrents can't download. Restart dx.bi, or pick a debrid stream."), { fatal: false });
+            throw Object.assign(new Error("Hank's streaming server isn't running, so torrents can't download. Restart Hank, or pick a debrid stream."), { fatal: false });
         }
         if (t.fileIdx === null && info && Array.isArray(info.files) && info.files.length) {
             // (no file named: the largest video in it)

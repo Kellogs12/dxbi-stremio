@@ -57,7 +57,7 @@ export async function offerEnhancedImport(): Promise<void> {
     const choice = preset ? (preset === "copy" ? 0 : 1) : await Helpers.showAlert(
         "question",
         "Bring your Stremio Enhanced setup?",
-        "dx.bi found Stremio Enhanced on this computer. It can copy your Stremio sign-in, library, settings, " +
+        "Hank found Stremio Enhanced on this computer. It can copy your Stremio sign-in, library, settings, " +
         "plugins and themes over, so everything is just as you left it.\n\n" +
         "Close Stremio Enhanced first if it's open. Stremio Enhanced itself isn't changed.",
         ["Copy my setup", "Start fresh"]

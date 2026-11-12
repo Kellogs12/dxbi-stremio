@@ -42,7 +42,7 @@ fetch dxbi.plugin.js "$DATA/plugins"
 echo
 bold "Done. Now in Stremio Enhanced:"
 echo "  1. Restart the app"
-echo "  2. Settings → Enhanced → Plugins → switch \"dx.bi\" on (the theme is built in)"
+echo "  2. Settings → Enhanced → Plugins → switch \"Hank\" on (the theme is built in)"
 echo
 echo "Made for Stremio Enhanced 1.2.0 (the latest full release, not a preview build)."
 echo "Tip: turn off Dynamic Hero, Horizontal Navigation, Enhanced Covers and Enhanced Title Bar if you use them."
