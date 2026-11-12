@@ -648,11 +648,15 @@ class DownloadsImpl {
             if (start > end || start >= size) { res.writeHead(416, { "Content-Range": `bytes */${size}` }).end(); return; }
             res.writeHead(206, { ...headers, "Content-Range": `bytes ${start}-${end}/${size}`, "Content-Length": end - start + 1 });
             if (req.method === "HEAD") { res.end(); return; }
-            createReadStream(file, { start, end }).pipe(res);
+            const stream = createReadStream(file, { start, end });
+            res.on("close", () => stream.destroy());
+            stream.pipe(res);
         } else {
             res.writeHead(200, { ...headers, "Content-Length": size });
             if (req.method === "HEAD") { res.end(); return; }
-            createReadStream(file).pipe(res);
+            const stream = createReadStream(file);
+            res.on("close", () => stream.destroy());
+            stream.pipe(res);
         }
     }
 }

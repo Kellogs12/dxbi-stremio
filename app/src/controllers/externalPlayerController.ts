@@ -6,7 +6,7 @@ import { getLogger } from '../utils/logger';
 import { IPC_CHANNELS } from '../constants';
 import { ipcMain, BrowserWindow, shell } from 'electron';
 import { homedir, tmpdir } from 'os';
-import { join } from 'path';
+import { join, basename } from 'path';
 import { VALID_EXTERNAL_PLAYERS, type ExternalPlayer, type ExternalPlayerOptions, type ExternalPlayerStatus } from '../interfaces/ExternalPlayerTypes';
 
 const logger = getLogger("ExternalPlayerController");
@@ -184,6 +184,15 @@ export const externalPlayerController = {
             if (!isPlayableUrl(streamUrl)) {
                 logger.error(`Refusing to open a stream that isn't a web or file link in ${player}.`);
                 return { success: false, error: "This stream link can't be opened in an external player." };
+            }
+
+            if (customPath) {
+                const base = basename(customPath).toLowerCase();
+                const allowed = player === 'mpv' ? ['mpv', 'mpv.exe', 'mpv.app'] : ['vlc', 'vlc.exe', 'vlc.app'];
+                if (!allowed.some(name => base === name || base.startsWith(name))) {
+                    logger.error(`Refusing unapproved custom player path: ${customPath}`);
+                    return { success: false, error: `Invalid custom executable for ${player}.` };
+                }
             }
 
             const playerPath = customPath || findPlayerPath(player as 'vlc' | 'mpv');

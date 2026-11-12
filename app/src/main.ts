@@ -143,9 +143,18 @@ async function createWindow() {
         });
     }
     
-    // Opens links in external browser instead of opening them in the Electron app.
-    mainWindow.webContents.setWindowOpenHandler((edata:any) => {
-        shell.openExternal(edata.url);
+    // Opens web links in external browser instead of opening them in the Electron app.
+    mainWindow.webContents.setWindowOpenHandler((edata: any) => {
+        try {
+            const parsed = new URL(edata.url);
+            if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+                shell.openExternal(edata.url);
+            } else {
+                logger.warn(`Blocked external open of non-web protocol: ${parsed.protocol}`);
+            }
+        } catch {
+            logger.warn(`Blocked invalid URL in openExternal: ${edata.url}`);
+        }
         return { action: "deny" };
     });
     

@@ -87,7 +87,7 @@ async function connect() {
 
 async function quitApp() {
   try { ws?.close(); } catch (_) { /* closed */ }
-  if (app.exitCode === null) {
+  if (app && app.exitCode === null) {
     const exited = new Promise((r) => app.once("exit", r));
     app.kill();
     await Promise.race([exited, sleep(5000)]);

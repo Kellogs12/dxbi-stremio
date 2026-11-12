@@ -45,15 +45,15 @@
   }
   // dx.bi also comes as its own desktop app (built on Stremio Enhanced): messages name the app
   // you're in, and the folder its streaming server lives in
-  const IN_APP = /\bdxbi\//.test(navigator.userAgent);
+  const IN_APP = /\b(dxbi|hank)\//i.test(navigator.userAgent) || (typeof window !== "undefined" && Boolean(window.StremioEnhancedAPI));
   // dx.bi TV (Android TV) plays every stream in its own native player, so the in-page player
   // features (seek previews, picture panel, skip buttons, watch parties…) stand aside there
   const IN_TV = /\bdxbi-tv\//.test(navigator.userAgent);
   // A TV stick can't keep up with smooth scrolling down the page (each new row is drawn as it
   // slides in): jumps there. Rows still glide sideways (page()): that runs on the graphics chip alone.
   const SCROLL = IN_TV ? "instant" : "smooth";
-  const SETTINGS_SECTION = IN_APP || IN_TV ? "dx.bi" : "Enhanced";
-  const APP_NAME = IN_APP ? "dx.bi" : "Stremio Enhanced";
+  const SETTINGS_SECTION = IN_APP || IN_TV ? "Hank" : "Enhanced";
+  const APP_NAME = IN_APP ? "Hank" : "Stremio Enhanced";
 
 
   // Stremio Web can drop window.core on some routes (Stremio Enhanced works around the same thing),
@@ -5753,6 +5753,16 @@
 
       connect() {
         if (this.closed) return;
+        if (this.ws) {
+          try {
+            this.ws.onopen = null;
+            this.ws.onmessage = null;
+            this.ws.onerror = null;
+            this.ws.onclose = null;
+            this.ws.close();
+          } catch (_) { /* already closed */ }
+          this.ws = null;
+        }
         let ws;
         try {
           ws = new WebSocket(this.url, ["mqtt"]);

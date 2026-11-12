@@ -40,9 +40,9 @@ function writeAbout(): void {
 
         const aboutCategory = document.querySelector(SELECTORS.ABOUT_CATEGORY);
         if (aboutCategory) {
-            aboutCategory.innerHTML += getAboutCategoryTemplate(
+            aboutCategory.insertAdjacentHTML("beforeend", getAboutCategoryTemplate(
                 currentVersion, checkForUpdatesOnStartup, discordRpc, isTransparencyEnabled, currentAngle, currentExternalPlayer, vlcCustomPath, mpvCustomPath
-            );
+            ));
         }
     }).catch(err => logger.error("Failed to write about section: " + err));
 }

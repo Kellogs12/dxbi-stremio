@@ -20,7 +20,7 @@ fun signingValue(key: String, env: String): String? = keystoreProps.getProperty(
 
 // Where the app looks for its updates: the repository it was built from (GitHub Actions says which), so
 // a fork's TVs follow the fork's own releases rather than being offered builds signed with another key
-val updateRepo = System.getenv("DXBI_UPDATE_REPO") ?: System.getenv("GITHUB_REPOSITORY") ?: "notdxbi/dxbi-stremio"
+val updateRepo = System.getenv("DXBI_UPDATE_REPO") ?: System.getenv("GITHUB_REPOSITORY") ?: "Kellogs12/dxbi-stremio"
 
 android {
     namespace = "com.notdxbi.dxbi.tv"

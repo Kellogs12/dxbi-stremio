@@ -7,11 +7,15 @@
 import { spawn, execFileSync } from "node:child_process";
 import { createReadStream, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import http from "node:http";
-import { tmpdir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import zlib from "node:zlib";
 
 const exe = process.argv[2];
+if (!exe) {
+  console.log("usage: node tools/mpv-test.mjs <path to app executable> [screenshot folder]");
+  process.exit(0);
+}
 const outDir = process.argv[3] || "mpv-shots";
 const PORT = 9333;
 const CLIP_PORT = 18766;
@@ -33,7 +37,8 @@ async function waitFor(what, fn, timeout = 60000, every = 500) {
 }
 
 // A fresh setup with no saved choices: dx.bi must start its streaming server by itself
-const userData = join(process.env.APPDATA, "dxbi");
+const baseData = process.env.APPDATA || (process.platform === "darwin" ? join(homedir(), "Library", "Application Support") : join(homedir(), ".config"));
+const userData = join(baseData, "dxbi");
 mkdirSync(userData, { recursive: true });
 
 console.log(`launching ${exe}`);
