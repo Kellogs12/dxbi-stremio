@@ -1,7 +1,7 @@
 /**
  * @name Hank
  * @description Netflix-style Stremio: billboard, carousels and hover previews, reviews and ratings, skip intro and up next, a better player, watch parties and more. The Hank look is built in.
- * @version 2.35.1
+ * @version 2.37.1
  * @author Hank
  * @updateUrl https://raw.githubusercontent.com/Kellogs12/dxbi-stremio/main/dxbi.plugin.js
  */
@@ -19,7 +19,7 @@
   // Stremio Enhanced loads each plugin as <script id="<file name>">, which tells us our settings key
   const SCRIPT_ID = (document.currentScript && document.currentScript.id) || "dxbi.plugin.js";
   const PLUGIN_KEY = SCRIPT_ID.replace(/\.plugin\.js$/, "");
-  const PLUGIN_VERSION = "2.35.1"; // kept in step with @version by tools/bundle-theme.mjs
+  const PLUGIN_VERSION = "2.37.1"; // kept in step with @version by tools/bundle-theme.mjs
   // Recent messages and errors, kept for problem reports (see `report`)
   const recent = { logs: [], errors: [] };
   const remember = (list, text) => {
@@ -263,7 +263,7 @@
       key: "subtitleStyle",
       type: "select",
       label: "Subtitle style",
-      description: "Size and position stay on Stremio's own subtitle settings. Original ASS styling, when enabled, and picture-based subtitles keep their own appearance.",
+      description: "Size and position stay on the subtitle settings in Settings → Player. Original ASS styling, when enabled, and picture-based subtitles keep their own appearance.",
       defaultValue: DEFAULTS.subtitleStyle,
       options: [
         { label: "Stremio default", value: "stremio" },
@@ -302,12 +302,12 @@
       key: "convertVideo",
       type: "select",
       label: "Convert videos this PC can't play",
-      description: "Many releases are HEVC/x265, 10-bit or Dolby Vision, which a lot of PCs (especially Windows 10 without HEVC support) can't decode, so Stremio says \"Video is not supported\". Auto has Stremio's streaming server convert those, and retries any video that fails.",
+      description: "Many releases are HEVC/x265, 10-bit or Dolby Vision, which a lot of PCs (especially Windows 10 without HEVC support) can't decode, so Stremio says \"Video is not supported\". Auto has the streaming server convert those, and retries any video that fails.",
       defaultValue: DEFAULTS.convertVideo,
       options: [
         { label: "Auto", value: "auto" },
         { label: "Always convert", value: "always" },
-        { label: "Never (Stremio's default)", value: "off" },
+        { label: "Never (the default)", value: "off" },
       ],
     },
     {
@@ -318,7 +318,7 @@
       defaultValue: DEFAULTS.subtitlesStart,
       options: [
         { label: "Off", value: "off" },
-        { label: "On, in my Stremio subtitle language", value: "stremio" },
+        { label: "On, in my subtitle language (Settings → Player)", value: "stremio" },
       ],
     },
     {
@@ -339,7 +339,7 @@
       key: "watchedTitles",
       type: "select",
       label: "Watched titles in Discover, Search & Home",
-      description: "Uses Stremio's own watched marks. Continue Watching and Library are never changed.",
+      description: "Uses your watched marks. Continue Watching and Library are never changed.",
       defaultValue: DEFAULTS.watchedTitles,
       options: [
         { label: "Show", value: "show" },
@@ -376,7 +376,7 @@
         { label: "10 seconds", value: "10" },
         { label: "15 seconds", value: "15" },
         { label: "20 seconds", value: "20" },
-        { label: "Off (Stremio's own popup)", value: "off" },
+        { label: "Off (the standard popup)", value: "off" },
       ],
     },
     { key: "fillerGuide", type: "toggle", label: "Anime filler guide", description: "Marks filler and mixed episodes in long anime (from animefillerlist.com) and dims filler in the episode list.", defaultValue: DEFAULTS.fillerGuide },
@@ -7489,7 +7489,7 @@
       ? [updateRoute, brandTitle, () => addonTools.ensure(), () => watchParty.ensure(), communitySync]
       : [updateRoute, brandTitle, () => player.ensure(), () => playerClock.ensure(), () => { convert.ensure().catch(() => { /* player state not ready */ }); }, () => convert.confirmHevc(), () => externalDefault.ensure(), () => placeholder.ensure(), () => playbackHelp.ensure(), () => scrub.ensure(), () => enhance.ensure(), () => watchParty.ensure(), () => skip.ensure(), () => tune.ensure(), () => streamInfo.ensure(), () => addonTools.ensure(), communitySync];
     steps.push(() => { titleColour.ensure().catch(() => { /* next sync */ }); }, () => webSettings.ensure());
-    if (currentRoute() === "detail") steps.push(() => streamTools.ensure(), () => streamRows.ensure(), () => quickPlay.ensure());
+    if (currentRoute() === "detail") steps.push(() => streamTools.ensure(), () => streamRows.ensure(), () => quickPlay.ensure(), () => webTorrents.ensure());
     if (!IN_TV) steps.push(() => downloads.ensure());
     steps.push(() => { quickPlay.note().catch(() => { /* next sync */ }); });
     steps.push(() => reviews.ensure(), () => hideButton.ensure(), () => { endsAt.ensure().catch(() => { /* next sync */ }); }, () => { calendarFill.ensure().catch(() => { /* next sync */ }); }, () => { restrict.guard().catch(() => { /* next sync */ }); });
@@ -7620,6 +7620,11 @@
   .dxe-btn:hover, .dxe-btn:focus-visible { background: rgba(255,255,255,.17); }
   .dxe-btn.is-primary { background: var(--dx-accent, #e50914); }
   .dxe-btn:disabled { opacity: .4; cursor: default; }
+  .dxe-text { padding: 0 1.4rem; color: rgba(255,255,255,.75); }
+  .dxe-text p { margin: 0 0 .7rem; font: 500 .92rem/1.55 Inter, system-ui, sans-serif !important; }
+  .dxe-text b { color: #fff; font-weight: 700 !important; }
+  [data-dx-needs-app] { opacity: .65; }
+  [data-dx-needs-app] .dxv-top::after { content: "Needs the app or debrid"; margin-left: .5rem; padding: .1rem .45rem; border-radius: .3rem; background: rgba(255,255,255,.14); color: #fff; font: 700 .7rem/1.4 Inter, system-ui, sans-serif; white-space: nowrap; }
   .dx-row-off { display: none !important; }
   [data-dx-ordered] { display: flex; flex-direction: column; }
   [data-dx-ordered] > * { flex: none; }
@@ -8265,7 +8270,7 @@
     // Stremio has already said "opened in external player" by now: say so when it can't be
     missing(type) {
       const name = type === "vlc" ? "VLC" : type === "iina" ? "IINA" : "mpv";
-      window.StremioEnhancedAPI.showAlert?.("warning", `${name} wasn't found`, `Install ${name}, or change the external player in Stremio's Settings → Player.`, ["OK"]);
+      window.StremioEnhancedAPI.showAlert?.("warning", `${name} wasn't found`, `Install ${name}, or change the external player in Settings → Player.`, ["OK"]);
     },
 
     // Where the viewer told Enhanced the player is (Settings → External player), if anywhere
@@ -8321,7 +8326,7 @@
           document.querySelector('[class*="player-container"] video')?.pause();
           history.back();
           const result = await window.StremioEnhancedAPI.launchExternalPlayer(which, url, this.customPath(which)).catch(() => null);
-          log(result && result.success ? `opened in ${which} (Stremio's external player setting)` : `couldn't open ${which}`);
+          log(result && result.success ? `opened in ${which} (your external player setting)` : `couldn't open ${which}`);
         })
         .catch(() => { /* core not ready */ });
     },
@@ -9086,7 +9091,7 @@
             <span class="dxe-spacer"></span>
             <button class="dxe-btn" data-act="close">Close</button>
             <button class="dxe-btn is-primary" data-act="save" disabled>Save order</button>
-            <div class="dxe-msg">${this.signedIn ? "Backups include your addon links, which can contain debrid keys: keep the file private." : "Sign in to Stremio to change the order: it's saved to your account."}</div>
+            <div class="dxe-msg">${this.signedIn ? "Backups include your addon links, which can contain debrid keys: keep the file private." : "Sign in to change the order: it's saved to your account."}</div>
           </div>
         </div>`;
       for (const type of ["keydown", "keyup", "keypress"]) modal.addEventListener(type, (e) => e.stopPropagation());
@@ -9231,6 +9236,8 @@
       try { if (localStorage.getItem("dxbi.packOffered")) return; } catch (_) { return; }
       const profile = await this.profile().catch(() => null);
       if (!profile || !Array.isArray(profile.addons)) return;
+      // Signed out, the starter addons already cover it (asked once signed in instead)
+      if (!profile.auth) return;
       const missing = this.missingPack(profile.addons);
       if (missing.length < HOME_PACK.length) {
         try { localStorage.setItem("dxbi.packOffered", "1"); } catch (_) { /* ignore */ }
@@ -9247,10 +9254,10 @@
     // Replace the account's addon collection, keeping the previous one so it can be undone
     async apply(addons, done, isUndo) {
       const valid = addons.every((a) => a && typeof a.transportUrl === "string" && a.manifest && typeof a.manifest.id === "string");
-      if (!valid || !addons.length) return this.say("That list doesn't look like Stremio addons, so nothing was changed.", "bad");
+      if (!valid || !addons.length) return this.say("That list doesn't look like addons, so nothing was changed.", "bad");
       const profile = await this.profile().catch(() => null);
       const authKey = profile && profile.auth && profile.auth.key;
-      if (!authKey) return this.say("Sign in to Stremio first: addons are saved to your account.", "bad");
+      if (!authKey) return this.say("Sign in first: addons are saved to your account.", "bad");
       this.say("Saving…");
       try {
         if (!isUndo) localStorage.setItem("dxbi.addonBackup", JSON.stringify({ t: Date.now(), addons: profile.addons }));
@@ -9269,7 +9276,7 @@
         this.render();
         this.say(done, "good");
       } catch (err) {
-        this.say(`Stremio didn't accept the change (${err.message}). Nothing was changed.`, "bad");
+        this.say(`Your account didn't accept the change (${err.message}). Nothing was changed.`, "bad");
       }
     },
 
@@ -9299,6 +9306,133 @@
         if (ok === 0) await this.apply(addons, `Restored ${addons.length} addons from the backup.`);
       });
       input.click();
+    },
+  };
+
+  // ---- Starter addons: signed out (a new install, the web page, after signing out), dx.bi starts
+  // with dx.bi's own addons, in dx.bi's order, so Home has rows and titles have streams before
+  // anyone makes an account. Stremio's other defaults for visitors (YouTube, WatchHub, Public Domain
+  // Movies) are taken out. It's set up once per signed-out stretch: an addon the visitor removes
+  // stays removed. Signing in swaps in the account's own addons (none of these are pushed to it), and
+  // signing out again starts over. No keys: Torrentio is the plain, unconfigured one.
+  const STARTER_ADDONS = [
+    HOME_PACK[2].url, // TMDB Collections
+    // (Ratings v3 and Cast Search, on dx.bi's own account too, are left out: both answered 404 in
+    // November 2026)
+    // Anime Catalogs with top airing too (the Home pack leaves it out)
+    "https://1fe84bc728af-stremio-anime-catalogs.baby-beamup.club/%7B%22search%22%3A%22on%22%2C%22myanimelist_top-airing%22%3A%22on%22%2C%22myanimelist_top-series%22%3A%22on%22%2C%22myanimelist_top-movies%22%3A%22on%22%7D/manifest.json",
+    "https://torrentio.strem.fun/manifest.json",
+    "https://opensubtitles-v3.strem.io/manifest.json", // Stremio's own: kept, moved into place
+    HOME_PACK[0].url, // Streaming Catalogs
+  ];
+  // Kept where they are, wherever that is: Stremio won't let Cinemeta or Local Files be removed or moved
+  const STARTER_KEEP_ONLY = new Set(["opensubtitles-v3.strem.io"]); // never installed by dx.bi, only reordered
+  const STARTER_DROP = new Set(["v3-channels.strem.io", "watchhub.strem.io", "caching.stremio.net"]);
+
+  const starterAddons = {
+    KEY: "dxbi.starterAddons", // hosts already added (or found) while signed out
+    SETUP: "dxbi.starterSetup", // set once the visitor's addons were arranged
+    busy: false,
+    timer: null,
+
+    host(url) {
+      try { return new URL(url).host; } catch (_) { return ""; }
+    },
+
+    // Pure: which starter URLs to fetch and add, given the profile's addon URLs and the hosts handled
+    plan(starter, have, done) {
+      const haveHosts = new Set(have.map((u) => this.host(u)));
+      return starter.filter((u) => !STARTER_KEEP_ONLY.has(this.host(u)) && !haveHosts.has(this.host(u)) && !done.includes(this.host(u)));
+    },
+
+    // Pure: the first setup. From the profile's addons and the manifests fetched for missing starter
+    // addons ({url: manifest}), what to remove and what to install, in order. Starter addons already
+    // there are removed and installed again: Stremio puts an installed addon last, so that's how
+    // they get into dx.bi's order.
+    arrange(addons, fetched) {
+      const byHost = new Map(addons.map((a) => [this.host(a.transportUrl), a]));
+      const remove = addons.filter((a) => !(a.flags && a.flags.protected) && STARTER_DROP.has(this.host(a.transportUrl)));
+      const install = [];
+      for (const u of STARTER_ADDONS) {
+        const present = byHost.get(this.host(u));
+        if (present && !(present.flags && present.flags.protected)) {
+          remove.push(present);
+          install.push({ manifest: present.manifest, transportUrl: present.transportUrl, flags: present.flags || { official: false, protected: false } });
+        } else if (!present && fetched[u]) {
+          install.push({ manifest: fetched[u], transportUrl: u, flags: { official: false, protected: false } });
+        }
+      }
+      return { remove, install };
+    },
+
+    done() {
+      try { const d = JSON.parse(localStorage.getItem(this.KEY) || "[]"); return Array.isArray(d) ? d : []; } catch (_) { return []; }
+    },
+
+    remember(hosts) {
+      try { localStorage.setItem(this.KEY, JSON.stringify([...new Set([...this.done(), ...hosts])])); } catch (_) { /* tried again next start */ }
+    },
+
+    async fetchAll(urls) {
+      const manifests = await Promise.all(urls.map((u) => fetch(u, { signal: AbortSignal.timeout(15000) }).then((r) => (r.ok ? r.json() : null)).catch(() => null)));
+      const out = {};
+      urls.forEach((u, i) => { if (manifests[i] && typeof manifests[i].id === "string") out[u] = manifests[i]; });
+      return out;
+    },
+
+    // Returns false while Stremio's core isn't ready yet
+    async apply() {
+      if (this.busy) return true;
+      const { getState, dispatch } = core();
+      if (!getState || !dispatch) return false;
+      const ctx = await getState("ctx").catch(() => null);
+      const profile = ctx && ctx.profile;
+      if (!profile || !Array.isArray(profile.addons)) return false;
+      if (profile.auth) {
+        // Signed in: the account's addons are in charge. Forget, so signing out sets them up again.
+        try { localStorage.removeItem(this.KEY); localStorage.removeItem(this.SETUP); } catch (_) { /* ignore */ }
+        return true;
+      }
+      let setUp = true;
+      try { setUp = !!localStorage.getItem(this.SETUP); } catch (_) { /* no storage: just add */ }
+      const have = profile.addons.map((a) => a.transportUrl || "");
+      const starterHosts = STARTER_ADDONS.filter((u) => !STARTER_KEEP_ONLY.has(this.host(u))).map((u) => this.host(u));
+      const already = starterHosts.filter((h) => have.some((u) => this.host(u) === h));
+      if (already.length) this.remember(already);
+      const todo = this.plan(STARTER_ADDONS, have, this.done());
+      if (setUp && !todo.length) return true;
+      this.busy = true;
+      try {
+        const fetched = await this.fetchAll(todo);
+        const addons = (await getState("ctx").catch(() => null))?.profile?.addons || profile.addons;
+        const uninstall = (a) => dispatch({ action: "Ctx", args: { action: "UninstallAddon", args: a } });
+        const install = (x) => dispatch({ action: "Ctx", args: { action: "InstallAddon", args: x } });
+        let added = Object.keys(fetched);
+        if (!setUp) {
+          const { remove, install: list } = this.arrange(addons, fetched);
+          for (const a of remove) await uninstall(a);
+          for (const x of list) await install(x);
+          try { localStorage.setItem(this.SETUP, "1"); } catch (_) { /* arranged again next start */ }
+          log(`starter addons arranged: ${list.map((x) => this.host(x.transportUrl)).join(", ")}`);
+        } else {
+          for (const u of todo) if (fetched[u]) await install({ manifest: fetched[u], transportUrl: u, flags: { official: false, protected: false } });
+        }
+        added = added.map((u) => this.host(u));
+        if (added.length) this.remember(added);
+      } finally {
+        this.busy = false;
+      }
+      return true;
+    },
+
+    start() {
+      let tries = 0;
+      const attempt = () => this.apply().then((ready) => {
+        if (!ready && ++tries < 20) setTimeout(attempt, 1500);
+      }).catch(() => { /* next check */ });
+      setTimeout(attempt, 1500);
+      // Signing out happens without a reload: check again now and then
+      if (!this.timer) this.timer = setInterval(() => { this.apply().catch(() => { /* next check */ }); }, 60000);
     },
   };
 
@@ -12189,7 +12323,9 @@
     async read() {
       const { getState } = core();
       const board = getState ? await getState("board") : null;
-      this.catalogs = board && Array.isArray(board.catalogs) ? board.catalogs.filter((c) => c && VIDEO_TYPES.has(String(c.type).toLowerCase())) : [];
+      // (every row Home shows: other types too, unless "video rows only" hides them. Rows from addons
+      // with their own types couldn't be moved or renamed)
+      this.catalogs = board && Array.isArray(board.catalogs) ? board.catalogs.filter((c) => c && (!settings.videoRowsOnly || VIDEO_TYPES.has(String(c.type).toLowerCase()))) : [];
       this.byLink = new Map(this.catalogs.filter((c) => c.deepLinks && c.deepLinks.discover).map((c) => [c.deepLinks.discover.replace(/\?$/, ""), this.key(c)]));
     },
 
@@ -14103,7 +14239,7 @@
         .sort((a, b) => a[1].localeCompare(b[1]));
       const zoomNote = p.zoom === "auto"
         ? (frame.unreadable.has(this.video) ? "This stream can't be measured." : frame.samples < 2 ? "Measuring the picture…" : frame.crop().t || frame.crop().l ? "Black bars removed." : "No black bars found in the picture.")
-        : "Stremio's Fit / Crop / Stretch button still works on top.";
+        : "The player's Fit / Crop / Stretch button still works on top.";
       const soundNote = sound.unreadable.has(this.video)
         ? "Not available for this stream."
         : { normal: "As the stream comes.", dialogue: "Raises voices and the centre speaker, and softens booming lows.", night: "Evens out loud and quiet scenes so you can keep the volume down." }[p.audio];
@@ -14653,6 +14789,102 @@
       }
       for (const el of list.querySelectorAll(":scope > [data-dx-best]")) if (el !== best) el.removeAttribute("data-dx-best");
       if (best && !best.hasAttribute("data-dx-best")) best.setAttribute("data-dx-best", "");
+    },
+  };
+
+  // ---- Torrents on the web. A browser has no streaming server, so a torrent can't play there (the
+  // apps have one built in, and debrid streams are ordinary links that play anywhere). On the web
+  // page, torrent streams say so, and picking one explains what to do instead of a dead player.
+  const webTorrents = {
+    get on() {
+      return !API && !IN_APP && !IN_TV;
+    },
+    hrefs: new Set(),
+    serverUp: true,
+    checked: 0,
+    busy: false,
+
+    norm: (h) => String(h || "").replace(/^[^#]*#/, ""),
+
+    async refresh() {
+      if (this.busy) return;
+      this.busy = true;
+      try {
+        const [md, server] = await Promise.all([core().getState("meta_details").catch(() => null), core().getState("streaming_server").catch(() => null)]);
+        this.serverUp = !!(server && server.settings && server.settings.type === "Ready");
+        const set = new Set();
+        for (const g of (md && Array.isArray(md.streams) ? md.streams : [])) {
+          const list = g && g.content && g.content.type === "Ready" && Array.isArray(g.content.content) ? g.content.content : [];
+          for (const st of list) if (st && st.infoHash && !st.url && st.deepLinks && st.deepLinks.player) set.add(this.norm(st.deepLinks.player));
+        }
+        this.hrefs = set;
+        this.checked = Date.now();
+      } finally {
+        this.busy = false;
+      }
+      this.mark();
+    },
+
+    needsApp(el) {
+      return !this.serverUp && this.hrefs.has(this.norm(el.getAttribute("href")));
+    },
+
+    mark() {
+      for (const el of document.querySelectorAll('[class*="streams-list-container"] [class*="stream-container"]')) {
+        const want = this.needsApp(el);
+        if (el.hasAttribute("data-dx-needs-app") !== want) el.toggleAttribute("data-dx-needs-app", want);
+      }
+    },
+
+    ensure() {
+      if (!this.on || currentRoute() !== "detail") return;
+      if (!this.wired) {
+        this.wired = true;
+        document.addEventListener("click", (e) => this.onClick(e), true);
+      }
+      ensureExtrasStyle();
+      if (Date.now() - this.checked > 1500) this.refresh().catch(() => { /* next sync */ });
+      else this.mark();
+    },
+
+    onClick(e) {
+      const el = e.target.closest && e.target.closest('[class*="streams-list-container"] [class*="stream-container"]');
+      if (!el || !this.needsApp(el)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      this.explain();
+    },
+
+    explain() {
+      if (document.querySelector(".dxe-modal.dxw-torrent")) return;
+      const modal = document.createElement("div");
+      modal.className = "dxe-modal dxw-torrent";
+      modal.innerHTML = `
+        <div class="dxe-sheet" role="dialog" aria-label="Torrents need the dx.bi app or a debrid service">
+          <div class="dxe-head"><b>This needs the dx.bi app or a debrid service<small>It's a torrent, and a browser can't download torrents.</small></b></div>
+          <div class="dxe-text">
+            <p><b>Get the dx.bi app</b> for Windows, Mac, Linux, TV or your phone: torrents play there, nothing else needed.</p>
+            <p><b>Or add a debrid service</b> (Real-Debrid, TorBox, AllDebrid…) to Torrentio: its streams then play right here in the browser.</p>
+          </div>
+          <div class="dxe-foot">
+            <span class="dxe-spacer"></span>
+            <button class="dxe-btn" data-act="close">Close</button>
+            <button class="dxe-btn" data-act="debrid">Set up Torrentio</button>
+            <button class="dxe-btn is-primary" data-act="app">Get the app</button>
+          </div>
+        </div>`;
+      const close = () => modal.remove();
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) return close();
+        const act = e.target.closest("[data-act]");
+        if (!act) return;
+        if (act.dataset.act === "app") window.open("https://github.com/notdxbi/dxbi-stremio#install", "_blank", "noopener");
+        if (act.dataset.act === "debrid") window.open("https://torrentio.strem.fun/configure", "_blank", "noopener");
+        close();
+      });
+      for (const type of ["keydown", "keyup", "keypress"]) modal.addEventListener(type, (e) => { e.stopPropagation(); if (e.key === "Escape") close(); });
+      document.body.append(modal);
+      modal.querySelector('[data-act="app"]').focus();
     },
   };
 
@@ -15562,6 +15794,7 @@
     fixThemeLink();
     builtInTheme.ensure();
     hwConvert.start();
+    starterAddons.start();
     // Offer the Home pack after the intro (and the viewer picker), never on top of them
     setTimeout(() => { if (currentRoute() === "board" && !document.querySelector(".dxe-who")) addonTools.offerPack().catch(() => { /* core not ready */ }); }, 7000);
     // Prepare the sounds after the intro so they never compete with it
@@ -16778,31 +17011,331 @@
           missing: [!settings.tmdbKey.trim() && "tmdb", !settings.mdblistKey.trim() && "mdblist"].filter(Boolean),
         };
       },
-      // The streams for the title open in details, read the way the stream list reads them, and the one
+      // Library addons (StremThru Store and the like) keep whole season packs under their own "other"
+      // ids: the file in one of them for the episode open in details, offered beside the addons' streams
+      libraryCache: new Map(),
+      libraryMetaCache: new Map(),
+
+      fileDetails(video) {
+        let fileId = String(video.id || "").split(":").pop() || "";
+        try { fileId = decodeURIComponent(fileId); } catch (_) { /* use the encoded id as-is */ }
+        const seasonFolder = /^(?:season|series|s)[ ._-]*(\d\d?)(?:\b.*)?$/i;
+        const seasonEpisode = /(?:^|[^a-z0-9])s(\d\d?)[ ._-]*e(\d\d?\d?)(?:[^0-9]|$)/i;
+        const crossSeasonEpisode = /(?:^|[^0-9])(\d\d?)x(\d\d?\d?)(?:[^0-9]|$)/i;
+        const namedEpisode = /(?:^|[\s._-]|\[|\u0028)(?:episode|ep|e)[\s._-]*(\d\d?\d?)(?=$|[\s._-]|\]|\u0029)/i;
+        const standaloneEpisode = /(?:^|[-_.]|\[|\u0028)\s*(\d\d?\d?)(?=$|[\s._-]|\]|\u0029)/i;
+        const extraMarker = /(?:^|[\s._\-]|\[|\u0028)(?:NCED|NCOP|OVA|OAD|SP|PV|MENU|PREVIEW|EXTRAS|SPECIALS?)(?=$|[\s._\-\d]|\]|\u0029)/i;
+        const isolatedOpeningEnding = /(?:^|[\s._\-]|\[|\u0028)(?:OP|ED)\s*\d*(?=$|[\s._\-]|\]|\u0029)/i;
+        const extraFolder = /^(?:specials?|ovas?|oads?|extras?)$/i;
+        let folderSeason = null;
+        let inSeasonFolder = false;
+        let inExtraFolder = false;
+        let detectedSeason = null;
+        let detectedEpisode = null;
+        let isExtra = false;
+
+        for (const path of [String(video.title || ""), fileId]) {
+          const parts = path.split(/[\\/]/);
+          const leaf = parts.at(-1) || "";
+          for (const folder of parts.slice(0, -1)) {
+            if (extraFolder.test(folder.trim())) inExtraFolder = true;
+            const found = seasonFolder.exec(folder.trim());
+            if (found) {
+              folderSeason = Number(found[1]);
+              inSeasonFolder = true;
+            }
+          }
+
+          if (extraMarker.test(leaf) || inExtraFolder) {
+            isExtra = true;
+            continue;
+          }
+
+          const se = seasonEpisode.exec(leaf);
+          const cross = crossSeasonEpisode.exec(leaf);
+          let episode = null;
+          if (se) {
+            detectedSeason = Number(se[1]);
+            episode = Number(se[2]);
+          } else if (cross) {
+            detectedSeason = Number(cross[1]);
+            episode = Number(cross[2]);
+          } else {
+            const named = namedEpisode.exec(leaf);
+            const standalone = standaloneEpisode.exec(leaf);
+            episode = named ? Number(named[1]) : standalone ? Number(standalone[1]) : null;
+          }
+          if (episode !== null) {
+            detectedEpisode = episode;
+            break;
+          }
+          if (isolatedOpeningEnding.test(leaf) && !se && !cross) isExtra = true;
+        }
+
+        const season = isExtra ? 0
+          : detectedSeason !== null ? detectedSeason
+            : inSeasonFolder ? folderSeason
+              : video.season == null ? null : Number(video.season);
+        const episode = isExtra ? null : detectedEpisode !== null ? detectedEpisode
+          : video.episode == null ? null : Number(video.episode);
+        const title = String(video.title || video.name || fileId).split(/[\\/]/).pop() || fileId;
+        return { season, episode, title, id: video.id, path: String(video.title || video.name || fileId) };
+      },
+
+      async libraryStreams(state, items) {
+        const selected = state && state.selected && state.selected.streamPath;
+        const metaResult = state && state.metaItem && state.metaItem.content;
+        const meta = metaResult && metaResult.type === "Ready" && metaResult.content;
+        if (!meta || !selected || !selected.id || !["movie", "series"].includes(meta.type)) return [];
+        await metadataSource.refresh();
+        const targetVideo = (meta.videos || []).find((video) => video.id === selected.id);
+        if (meta.type === "series" && !targetVideo) return [];
+
+        const normalize = (value) => {
+          const text = String(value || "").normalize("NFKC")
+            .toLowerCase()
+            .replace(/\b(19|20)\d{2}\b/g, " ")
+            .replace(/\b(2160p|1080p|720p|480p|4k|hdr|web[- ]?dl|blu[- ]?ray)\b/g, " ")
+            .trim();
+          return text.replace(/[^a-z0-9]+/g, " ").trim() || text;
+        };
+        const titleValues = (value) => {
+          if (typeof value === "string") return [value];
+          if (Array.isArray(value)) return value.flatMap(titleValues);
+          if (!value || typeof value !== "object") return [];
+          return Object.values(value).flatMap(titleValues);
+        };
+        const titleFields = [
+          "name", "originalName", "originalTitle", "original_name", "original_title", "canonicalTitle",
+          "english", "englishName", "romaji", "nativeName", "aliases", "alternativeTitles", "alternative_titles",
+          "alternative_names", "aka", "akaTitles", "aka_titles", "titles", "names",
+        ];
+        const titleAliases = (item) => [...new Set(titleFields.flatMap((key) => titleValues(item && item[key])
+          .map((value) => value.trim()).filter(Boolean)))];
+        const collectIds = (item) => {
+          const ids = new Set();
+          const add = (value) => {
+            if (typeof value !== "string") return;
+            const text = value.trim();
+            const imdb = text.match(/tt\d+/i);
+            if (imdb) ids.add(imdb[0].toLowerCase());
+            const kitsu = text.match(/(?:kitsu[:_/.-]?|kitsu\.io\/anime\/)(\d+)/i);
+            if (kitsu) {
+              ids.add(`kitsu:${kitsu[1]}`);
+              ids.add(kitsu[1]);
+            }
+          };
+          const addKitsu = (value) => {
+            if (value == null || !/^\d+$/.test(String(value))) return;
+            ids.add(`kitsu:${value}`);
+            ids.add(String(value));
+          };
+          if (!item || typeof item !== "object") return ids;
+          add(item.id);
+          add(item.imdbId);
+          add(item.imdb_id);
+          addKitsu(item.kitsuId);
+          addKitsu(item.kitsu_id);
+          for (const [source, value] of Object.entries(item.ids || {})) {
+            if (/kitsu/i.test(source)) addKitsu(value);
+            else add(String(value));
+          }
+          for (const link of Array.isArray(item.links) ? item.links : []) {
+            if (link && typeof link === "object") {
+              add(link.name);
+              add(link.url);
+            }
+          }
+          return ids;
+        };
+        const aliases = titleAliases(meta);
+        const wanted = [...new Set(aliases.map(normalize).filter(Boolean))];
+        const ids = collectIds(meta);
+        const searchTerms = [...new Set([...aliases, ...ids])];
+        if (!wanted.length && !ids.size) return [];
+        const titleMatches = (item) => titleAliases(item).some((value) => {
+          const text = value.trim();
+          const tagEnd = text.startsWith("[") ? text.indexOf("] ") : -1;
+          const name = normalize(tagEnd >= 0 ? text.slice(tagEnd + 2) : text);
+          return wanted.some((title) => name && (name === title || name.startsWith(`${title} `) || title.startsWith(`${name} `)));
+        });
+        const identityMatches = (item) => [...collectIds(item)].some((id) => ids.has(id));
+        const servesOther = (addon, resource) => (addon.manifest.resources || []).some((entry) => {
+          const name = typeof entry === "string" ? entry : entry && entry.name;
+          const types = (typeof entry === "object" && entry.types) || addon.manifest.types || [];
+          return name === resource && types.includes("other");
+        });
+        const addons = metadataSource.addons.filter((addon) =>
+          servesOther(addon, "meta") && servesOther(addon, "stream")
+          && (addon.manifest.catalogs || []).some((catalog) => catalog && catalog.type === "other"));
+
+        const candidates = [];
+        await Promise.all(addons.map(async (addon) => {
+          const catalogs = (addon.manifest.catalogs || [])
+            .filter((catalog) => catalog && catalog.type === "other" && (catalog.extra || []).some((extra) => extra && extra.name === "search"));
+          await Promise.all(catalogs.flatMap((catalog) => searchTerms.map(async (term) => {
+            const query = normalize(term);
+            if (!query) return;
+            const key = `${metadataSource.generation}:${addon.transportUrl}:${catalog.id}:${query}`;
+            let entry = this.libraryCache.get(key);
+            if (!entry || Date.now() - entry.at > 5 * 60 * 1000) {
+              entry = { at: Date.now(), promise: null };
+              entry.promise = (async () => {
+                const base = metadataSource.url(addon, "catalog", "other", catalog.id);
+                if (!base) return [];
+                const url = new URL(base);
+                url.pathname = url.pathname.replace(/\.json$/, `/search=${encodeURIComponent(term)}.json`);
+                const response = await fetch(url.href, { signal: AbortSignal.timeout(6000) });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const body = await response.json();
+                return Array.isArray(body.metas) ? body.metas.filter((result) => {
+                  if (!result || typeof result.id !== "string" || (result.type && result.type !== "other")) return false;
+                  return titleMatches(result) || identityMatches(result);
+                }) : [];
+              })().catch((error) => {
+                console.warn("[dx.bi] library catalog lookup failed", (addon.manifest && addon.manifest.name) || "library addon", error);
+                return [];
+              });
+              this.libraryCache.set(key, entry);
+              if (this.libraryCache.size > 80) this.libraryCache.delete(this.libraryCache.keys().next().value);
+            }
+            for (const result of await entry.promise) candidates.push({ addon, result });
+          })));
+        }));
+
+        const uniqueCandidates = [...new Map(candidates.map((candidate) =>
+          [`${candidate.addon.transportUrl}:${candidate.result.id}`, candidate])).values()];
+        const matches = [];
+        await Promise.all(uniqueCandidates.map(async ({ addon, result }) => {
+          const key = `${metadataSource.generation}:${addon.transportUrl}:meta:${result.id}`;
+          let entry = this.libraryMetaCache.get(key);
+          if (!entry || Date.now() - entry.at > (entry.failed ? 30_000 : 2 * 60 * 1000)) {
+            entry = { at: Date.now(), failed: false, promise: null };
+            entry.promise = (async () => {
+              const url = metadataSource.url(addon, "meta", "other", result.id);
+              if (!url) return null;
+              const response = await fetch(url, { signal: AbortSignal.timeout(6000) });
+              if (!response.ok) throw new Error(`HTTP ${response.status}`);
+              const body = await response.json();
+              return body && body.meta;
+            })().catch((error) => {
+              entry.failed = true;
+              console.warn("[dx.bi] library metadata lookup failed", (addon.manifest && addon.manifest.name) || "library addon", error);
+              return null;
+            });
+            this.libraryMetaCache.set(key, entry);
+            if (this.libraryMetaCache.size > 100) this.libraryMetaCache.delete(this.libraryMetaCache.keys().next().value);
+          }
+          const pack = await entry.promise;
+          if (!pack || !Array.isArray(pack.videos) || !pack.videos.length) return;
+          const files = pack.videos.map((video) => this.fileDetails(video));
+          let selectedFile;
+          if (meta.type === "series") {
+            const target = this.fileDetails(targetVideo);
+            const targetSeason = target.season == null
+              ? targetVideo.season == null ? null : Number(targetVideo.season)
+              : target.season;
+            const targetEpisode = target.episode == null
+              ? targetVideo.episode == null ? null : Number(targetVideo.episode)
+              : target.episode;
+            selectedFile = files.find((file) => file.season === targetSeason && file.episode === targetEpisode);
+            if (!selectedFile && targetEpisode != null) {
+              const episodeName = normalize(targetVideo.title);
+              selectedFile = files.find((file) => file.episode === targetEpisode && normalize(file.title) === episodeName);
+            }
+            if (!selectedFile && Number.isFinite(targetEpisode) && targetEpisode > 0
+              && (!Number.isFinite(targetSeason) || targetSeason > 0)) {
+              const priorSeasonEpisodes = new Map();
+              for (const video of meta.videos || []) {
+                const details = this.fileDetails(video);
+                const season = details.season == null ? Number(video.season) : details.season;
+                const episode = details.episode == null ? Number(video.episode) : details.episode;
+                if (Number.isFinite(season) && season > 0 && season < targetSeason && Number.isFinite(episode)) {
+                  priorSeasonEpisodes.set(season, Math.max(priorSeasonEpisodes.get(season) || 0, episode));
+                }
+              }
+              const priorCount = [...priorSeasonEpisodes.values()].reduce((sum, count) => sum + count, 0);
+              const absoluteEpisode = Number(targetVideo.absoluteEpisode || targetVideo.absolute || targetVideo.number)
+                || (targetEpisode > priorCount ? targetEpisode : priorCount + targetEpisode);
+              selectedFile = files.find((file) => file.season == null && file.episode === absoluteEpisode);
+            }
+          } else {
+            selectedFile = files.find((file) => wanted.includes(normalize(file.title))) || (files.length === 1 ? files[0] : null);
+          }
+          if (selectedFile) matches.push({ addon, pack, result, files, selectedFile });
+        }));
+
+
+        return matches.map(({ addon, pack, result, files, selectedFile }, index) => {
+          const episode = selectedFile.season == null ? "" : selectedFile.season === 0
+            ? "Specials"
+            : `S${String(selectedFile.season).padStart(2, "0")}${selectedFile.episode == null ? "" : `E${String(selectedFile.episode).padStart(2, "0")}`}`;
+          return {
+            index: items.length + index,
+            play: "",
+            addon: (addon.manifest && addon.manifest.name) || "Library addon",
+            filename: selectedFile.title,
+            label: [episode, "Library file"].filter(Boolean).join(" · "),
+            torrent: false,
+            provider: (addon.manifest && addon.manifest.name) || "Library addon",
+            site: "",
+            codec: "",
+            instant: true,
+            pending: false,
+            lesser: false,
+            res: 0,
+            hdr: false,
+            dv: false,
+            size: 0,
+            seeds: -1,
+            source: "Library",
+            langs: [],
+            library: {
+              type: "other",
+              metaId: pack.id || result.id,
+              fileId: selectedFile.id,
+              packTitle: pack.name || result.name || "Library file",
+              files,
+            },
+          };
+        });
+      },
+
       // Just press Play would pick (what this viewer chose last, else the best that's ready to play)
-      async streams() {
-        const state = await core().getState("meta_details").catch(() => null);
+
+      // The streams for the title open in details, read the way the stream list reads them, and the one
+      // Just press Play would pick (what this viewer chose last, else the best that's ready to play).
+      // Files from library addons' season packs come after them
+      async streams(field = "meta_details") {
+        const state = await core().getState(field).catch(() => null);
         const groups = state && Array.isArray(state.streams) ? state.streams : [];
         const metaId = state && state.selected && state.selected.metaPath && state.selected.metaPath.id;
         const items = groups.flatMap((g) => (g && g.content && g.content.type === "Ready" && Array.isArray(g.content.content)
           ? g.content.content.map((st) => ({ st, addon: (g.addon && g.addon.manifest && g.addon.manifest.name) || "" })) : []))
-          .filter((x) => x.st && x.st.deepLinks && x.st.deepLinks.player && !x.st.ytId)
+          // (not links to another page, an addon's "see this title" entries: the player can't play them)
+          .filter((x) => x.st && x.st.deepLinks && x.st.deepLinks.player && !x.st.ytId && (x.st.url || x.st.infoHash || !x.st.externalUrl))
           .map((x) => ({ ...x, torrent: !!x.st.infoHash && !x.st.url, hint: watchParty.streamHints(x.st), d: describeStream(String(x.st.name || ""), `${x.st.name || ""}\n${x.st.description || x.st.title || ""}`) }));
-        const server = await core().getState("streaming_server").catch(() => null);
+        const [server, library] = await Promise.all([
+          core().getState("streaming_server").catch(() => null),
+          this.libraryStreams(state, items).catch(() => []),
+        ]);
         const options = {
           limit: streamChoice.limit(settings.quickPlayQuality),
           fallback: settings.quickPlayFallback,
           torrents: !!(server && server.settings && server.settings.type === "Ready") || (IN_TV && settings.tvTorrents),
         };
         const choice = items.length ? streamChoice.choose(items, metaId ? quickPlay.memory(metaId) : null, options) : null;
-        phoneStreams = { items, options };
+        phoneStreams = { items, options, library, state };
+        // (settled: the title's details are in and no addon is still answering)
+        const meta = state && state.metaItem && state.metaItem.content;
+        const settled = !!meta && meta.type !== "Loading" && !groups.some((g) => g && g.content && g.content.type === "Loading");
         return {
           justPlay: settings.quickPlay,
-          settled: groups.length > 0 && !groups.some((g) => g && g.content && g.content.type === "Loading"),
+          settled,
           videoId: (state && state.selected && state.selected.streamPath && state.selected.streamPath.id) || null,
-          pick: choice ? items.indexOf(choice.item) : -1,
-          how: choice ? choice.how : null,
-          items: items.map((x) => ({
+          pick: choice ? items.indexOf(choice.item) : library.length ? items.length : -1,
+          how: choice ? choice.how : library.length ? "library" : null,
+          items: [...items.map((x) => ({
             play: x.st.deepLinks.player,
             addon: x.addon,
             // the file's own name: what tells two 1080p streams apart
@@ -16810,17 +17343,42 @@
             label: quickPlay.label(x.d),
             torrent: x.torrent,
             ...x.d,
-          })),
+          })), ...library.map(({ library: _files, ...item }) => item)],
         };
       },
-      // Playing one of those: like Just press Play, the next best are kept in case it won't play
-      play(index) {
+      // Playing one of those: like Just press Play, the next best are kept in case it won't play.
+      // A library file: its stream from the library addon, played as this episode (so its progress
+      // and Continue Watching are the show's)
+      async play(index) {
         const item = phoneStreams && phoneStreams.items[index];
-        if (!item) return null;
-        quickPlay.from = location.hash;
-        quickPlay.spares = streamChoice.spares(phoneStreams.items, item, phoneStreams.options);
-        quickPlay.play(item);
-        return item.st.deepLinks.player;
+        if (item) {
+          quickPlay.from = location.hash;
+          quickPlay.spares = streamChoice.spares(phoneStreams.items, item, phoneStreams.options);
+          quickPlay.play(item);
+          return item.st.deepLinks.player;
+        }
+        const file = phoneStreams && phoneStreams.library && phoneStreams.library[index - phoneStreams.items.length];
+        return file ? this.libraryLink(file, phoneStreams.state).catch((err) => { log("library file", err && err.message); return null; }) : null;
+      },
+      async libraryLink(file, state) {
+        const addon = metadataSource.addons.find((a) => a.manifest && a.manifest.name === file.addon) || null;
+        const url = addon && metadataSource.url(addon, "stream", file.library.type, file.library.fileId);
+        if (!url) return null;
+        const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const body = await response.json();
+        const stream = (body && Array.isArray(body.streams) ? body.streams : []).find((s) => s && (s.url || s.infoHash));
+        if (!stream) return null;
+        const sel = state && state.selected;
+        const metaPath = sel && sel.metaPath;
+        const videoId = sel && sel.streamPath && sel.streamPath.id;
+        const metaItem = state && state.metaItem;
+        const metaTransport = (metaItem && metaItem.addon && metaItem.addon.transportUrl) || (metaItem && metaItem.request && metaItem.request.base) || null;
+        const parts = [await downloads.encode(stream), addon.transportUrl];
+        // (as the episode: else as the pack's own file)
+        if (metaTransport && metaPath && videoId) parts.push(metaTransport, metaPath.type, metaPath.id, videoId);
+        else parts.push(addon.transportUrl, file.library.type, file.library.metaId, file.library.fileId);
+        return `#/player/${parts.map((p) => encodeURIComponent(p)).join("/")}`;
       },
       // Watch party (see watchParty.phone)
       party: watchParty.phone,

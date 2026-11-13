@@ -540,24 +540,34 @@
     return (await profileSettings()).subtitlesLanguage || "";
   }
 
-  // Subtitle addons answer a moment after the player opens: wait (up to [ms]) for one in the start
-  // language before handing over, or the TV's player only gets what had arrived (often only English)
+  // Subtitle addons answer a moment after the player opens, one after another, and the TV's player
+  // only gets what had arrived by the hand-off (the desktop's list keeps filling in). Wait (up to
+  // [ms]) for one in the start language, and for the list to stop growing, so a slower addon's
+  // languages (a Bulgarian-only addon, say) make it into the subtitles menu too
   async function subtitlesSoon(state, language, hash, ms) {
-    const has = (s) => (s && s.subtitles || []).some((x) => x && x.url && sameLanguage(x.lang, language));
-    if (!language || has(state)) return state;
+    const subs = (s) => (s && s.subtitles || []).filter((x) => x && x.url);
+    const has = (s) => !language || subs(s).some((x) => sameLanguage(x.lang, language));
     const until = Date.now() + ms;
+    let count = subs(state).length;
+    let changed = Date.now();
     while (Date.now() < until && location.hash === hash) {
+      // (settled: the start language is there and nothing new came for a while)
+      // (none at all after 2 s: no subtitle addons to wait for)
+      if (has(state) && count > 0 && Date.now() - changed >= 1500) break;
+      if (count === 0 && Date.now() - changed >= 2000) break;
       await new Promise((r) => setTimeout(r, 250));
       const next = await playerState();
       if (next) state = next;
-      if (has(state)) break;
+      const n = subs(state).length;
+      if (n !== count) { count = n; changed = Date.now(); }
     }
     return state;
   }
 
-  // Addons can offer dozens of subtitle files: keep up to three per language, with the start
-  // language (and English) first, so the TV's subtitle menu stays short. The first in the start
-  // language is marked to switch on as the video starts
+  // Addons can offer hundreds of subtitle files: keep up to three in the start language and English
+  // and two in every other language (so every language is there, as on the desktop: a cap on the
+  // total used to drop whole languages), the start language and English first. The first in the
+  // start language is marked to switch on as the video starts
   async function pickSubtitles(list, language) {
     const preferred = language || (await profileSettings()).subtitlesLanguage || "";
     const rank = (lang) => (sameLanguage(lang, preferred) ? 0 : /^(eng|en)$/.test(lang) ? 1 : 2);
@@ -566,14 +576,14 @@
     let started = false;
     for (const sub of list.filter((x) => x && x.url).sort((a, b) => rank(a.lang || "") - rank(b.lang || ""))) {
       const lang = sub.lang || "";
+      if ((count[lang] || 0) >= (rank(lang) < 2 ? 3 : 2)) continue;
       count[lang] = (count[lang] || 0) + 1;
-      if (count[lang] > 3) continue;
       // "English", "English 2", "English 3"
       // (where it came from: the stream's own, or a subtitle addon's search by title, which may not fit this release)
       const pick = { url: sub.url, lang, label: subtitleLabel(lang) + (count[lang] > 1 ? ` ${count[lang]}` : ""), source: sub.source || "addon" };
       if (language && !started && sameLanguage(lang, language)) pick.start = started = true;
       out.push(pick);
-      if (out.length >= 45) break;
+      if (out.length >= 120) break;
     }
     return out;
   }
@@ -660,6 +670,14 @@
     if (!url && stream.infoHash) {
       let onTv = playHereOnce === hash || readSettings(PLUGIN.replace(/\.plugin\.js$/, "")).tvTorrents === true;
       playHereOnce = null;
+      // The phone app's screens cover the page, so the question below would be asked where nobody
+      // can see it (the video just never started): say what's needed instead
+      if (!onTv && PHONE) {
+        handoff = null;
+        if (location.hash === hash) history.back();
+        toast("This is a torrent, and it needs a streaming server. Pick a debrid stream, set a streaming server in Profile → Playback, or turn on dx.bi settings → Player → Play torrents on this phone.", 9000);
+        return;
+      }
       if (!onTv) {
         const choice = await dialog({
           title: "This stream needs a streaming server",
@@ -687,9 +705,15 @@
       }
     }
     if (!url && stream.externalUrl) {
-      native.openExternal(stream.externalUrl);
       handoff = null;
-      history.back();
+      // A link to another of Stremio's own pages ("detail/movie/tt…", stremio:///detail/…): that page,
+      // in place of this player screen. It used to go to Android as an outside link and open nothing
+      const inside = /^(?:stremio:\/\/\/?|#?\/?)((?:detail|discover|library|search|addons)\/.*)$/.exec(stream.externalUrl);
+      if (inside) location.replace(`#/${inside[1]}`);
+      else {
+        native.openExternal(stream.externalUrl);
+        history.back();
+      }
       return;
     }
     if (!url) { handoff = null; return; }

@@ -13,6 +13,7 @@ import { BrowserWindow, shell } from "electron";
 import { watchLoad } from "./core/LoadWatch";
 import StreamingServer from "./utils/StreamingServer";
 import Helpers from "./utils/Helpers";
+import { keepOnStremio } from "./utils/SafeLinks";
 import StremioService from "./utils/StremioService";
 import { setupPluginSettingsAPI } from "./controllers/api/SettingsApiController";
 import { setupPluginAlertAPI } from "./controllers/api/AlertApiController";
@@ -148,39 +149,8 @@ async function createWindow() {
         });
     }
     
-    // Opens web links in external browser instead of opening them in the Electron app.
-    mainWindow.webContents.setWindowOpenHandler((edata: any) => {
-        try {
-            const parsed = new URL(edata.url);
-            if (parsed.protocol === "http:" || parsed.protocol === "https:") {
-                shell.openExternal(edata.url);
-            } else {
-                logger.warn(`Blocked external open of non-web protocol: ${parsed.protocol}`);
-            }
-        } catch {
-            logger.warn(`Blocked invalid URL in openExternal: ${edata.url}`);
-        }
-        return { action: "deny" };
-    });
-
-    // Prevent top-level window navigation off web.stremio.com
-    mainWindow.webContents.on('will-navigate', (event, targetUrl) => {
-        try {
-            const target = new URL(targetUrl);
-            const stremio = new URL(URLS.STREMIO_WEB);
-            if (target.origin !== stremio.origin) {
-                event.preventDefault();
-                if (target.protocol === "http:" || target.protocol === "https:") {
-                    shell.openExternal(targetUrl);
-                } else {
-                    logger.warn(`Blocked navigation to untrusted protocol: ${target.protocol}`);
-                }
-            }
-        } catch {
-            event.preventDefault();
-            logger.warn(`Blocked invalid navigation URL: ${targetUrl}`);
-        }
-    });
+    // Links open in the browser (web and mail links only), and the window stays on Stremio's page
+    keepOnStremio(mainWindow);
     
     // Devtools flag
     if(process.argv.includes("--devtools")) { 

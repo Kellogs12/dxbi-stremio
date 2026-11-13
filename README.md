@@ -3,13 +3,13 @@
 </p>
 
 <p align="center">
-  <b>A Netflix-style Stremio app for Windows, macOS, Linux and TVs.</b><br>
+  <b>A Netflix-style streaming app for Windows, macOS, Linux, TVs, phones and the web.</b><br>
   Download, sign in, done. Works with your existing addons. Nothing to configure.<br>
   <sub>Also available as a plugin for Stremio Enhanced.</sub>
 </p>
 
 <p align="center">
-  <a href="#install"><b>⬇ Download dx.bi for Windows, Mac, Linux or your TV</b></a>
+  <a href="#install"><b>⬇ Download Hank for your computer, TV or phone</b></a>
   &nbsp;·&nbsp;
   <a href="https://discord.gg/nnVBjqZ84F"><b>💬 Join the dx.bi Discord</b></a>
   &nbsp;·&nbsp;
@@ -17,8 +17,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/notdxbi/dxbi-stremio/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/notdxbi/dxbi-stremio?label=release&color=e50914&style=flat-square"></a>
-  <img alt="Windows · macOS · Linux · Android TV · Fire TV · Android · iPhone" src="https://img.shields.io/badge/Windows%20·%20macOS%20·%20Linux%20·%20Android%20TV%20·%20Fire%20TV%20·%20Android%20·%20iPhone-222?style=flat-square">
+  <a href="https://github.com/Kellogs12/dxbi-stremio/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/Kellogs12/dxbi-stremio?label=release&color=e50914&style=flat-square"></a>
+  <img alt="Windows · macOS · Linux · Android TV · Fire TV · Android · iPhone · Web" src="https://img.shields.io/badge/Windows%20·%20macOS%20·%20Linux%20·%20Android%20TV%20·%20Fire%20TV%20·%20Android%20·%20iPhone%20·%20Web-222?style=flat-square">
   <a href="NOTICE.md"><img alt="GPL-3.0" src="https://img.shields.io/badge/license-GPL--3.0-222?style=flat-square"></a>
   <a href="https://discord.gg/nnVBjqZ84F"><img alt="Discord" src="https://img.shields.io/badge/Discord-join-5865F2?style=flat-square&logo=discord&logoColor=white"></a>
   <a href="https://buymeacoffee.com/notdxbi"><img alt="Buy Me a Coffee" src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-support-FFDD00?style=flat-square&logo=buymeacoffee&logoColor=black"></a>
@@ -29,11 +29,11 @@
 </p>
 
 <p align="center">
-  <img src="screenshots/home.jpg" alt="DX.BI home screen" width="100%">
+  <img src="screenshots/home.jpg" alt="Hank home screen" width="100%">
 </p>
 
 > [!NOTE]
-> DX.BI is a personal fan project I made for my own use and decided to share. It was built with the help of [Claude Code](https://www.anthropic.com/claude-code), Anthropic's AI coding assistant. It isn't affiliated with Netflix or Stremio.
+> Hank is a personal fan project I made for my own use and decided to share. It isn't affiliated with Netflix or Stremio.
 
 <br>
 
@@ -43,18 +43,19 @@ Pick your device below. It takes about two minutes.
 
 | Device | Download |
 |---|---|
-| Windows 10 and 11 | [**Download for Windows**](https://github.com/notdxbi/dxbi-stremio/releases/latest/download/dxbi-Setup-x64.exe) |
-| Mac with an Apple chip (M1, M2, M3, M4…) | [**Download for Mac (Apple chip)**](https://github.com/notdxbi/dxbi-stremio/releases/latest/download/dxbi-mac-arm64.dmg) |
-| Mac with an Intel chip | [**Download for Mac (Intel)**](https://github.com/notdxbi/dxbi-stremio/releases/latest/download/dxbi-mac-x64.dmg) |
-| Linux | [**Download for Linux**](https://github.com/notdxbi/dxbi-stremio/releases/latest/download/dxbi-linux-x86_64.AppImage) |
+| Windows 10 and 11 | [**Download for Windows**](https://github.com/Kellogs12/dxbi-stremio/releases/latest/download/hank-Setup-x64.exe) |
+| Mac with an Apple chip (M1, M2, M3, M4…) | [**Download for Mac (Apple chip)**](https://github.com/Kellogs12/dxbi-stremio/releases/latest/download/hank-mac-arm64.dmg) |
+| Mac with an Intel chip | [**Download for Mac (Intel)**](https://github.com/Kellogs12/dxbi-stremio/releases/latest/download/hank-mac-x64.dmg) |
+| Linux | [**Download for Linux**](https://github.com/Kellogs12/dxbi-stremio/releases/latest/download/hank-linux-x86_64.AppImage) |
 | Android TV, Google TV, Fire TV | [**See the TV steps**](#on-a-tv) |
-| Android phone or tablet | [**Download for Android**](https://github.com/notdxbi/dxbi-stremio/releases/latest/download/dxbi-mobile.apk) · [steps](#on-an-android-phone) |
+| Android phone or tablet | [**Download for Android**](https://github.com/Kellogs12/dxbi-stremio/releases/latest/download/hank-mobile.apk) · [steps](#on-an-android-phone) |
 | iPhone | [**See the iPhone steps**](#on-an-iphone) |
+| Any browser | [**Open dx.bi on the web**](https://notdxbi.github.io/dxbi-web/) (debrid and direct streams; torrents need the app) |
 
 Not sure which Mac you have? Click the Apple menu  → *About This Mac*. "Chip: Apple M…" means an Apple chip; "Processor: Intel" means Intel.
 
 > [!TIP]
-> You'll sign in with a Stremio account. If you don't have one yet, it's free: create it in the app when it asks, or at [stremio.com](https://www.stremio.com).
+> Hank signs in with a Stremio account, so your addons, library and progress come with you. If you don't have one yet, it's free: create it in the app when it asks, or at [stremio.com](https://www.stremio.com).
 
 ### On Windows
 
@@ -183,31 +184,31 @@ dx.bi keeps itself up to date. On Windows and Linux it downloads new versions in
 ## Read this first
 
 > [!IMPORTANT]
-> DX.BI is a Stremio app: it uses your Stremio account and addons. It doesn't add any movies, shows or streams of its own, and it doesn't make anything play on its own.
+> Hank is built on Stremio's open-source web app and uses your Stremio account and addons. It doesn't add any movies, shows or streams of its own: everything comes from the addons you install. Until you sign in, Hank starts with a few free ones (catalogs for Home and Torrentio), so you can look around first.
 >
-> Titles play the way they do in Stremio. If nothing plays in your Stremio today, nothing will play in DX.BI either.
+> If an addon has nothing for a title, Hank won't either.
 
 <br>
 
 ## Already using Stremio Enhanced? Use the plugin
 
-You can add dx.bi to [Stremio Enhanced](https://github.com/REVENGE977/stremio-enhanced/releases) as a plugin instead of installing the app. You get the same dx.bi. The plugin is made and tested on Stremio Enhanced's latest full release, currently 1.2.0; preview and test builds (such as 1.3.0-preview) aren't supported and can break the player.
+You can add Hank to [Stremio Enhanced](https://github.com/REVENGE977/stremio-enhanced/releases) as a plugin instead of installing the app. You get the same Hank look. The plugin is made and tested on Stremio Enhanced's latest full release, currently 1.2.0; preview and test builds (such as 1.3.0-preview) aren't supported and can break the player.
 
 1. Run one command. On Windows, open *PowerShell* and paste:
 
    ```powershell
-   irm https://github.com/notdxbi/dxbi-stremio/releases/latest/download/install.ps1 | iex
+   irm https://github.com/Kellogs12/dxbi-stremio/releases/latest/download/install.ps1 | iex
    ```
 
    On macOS or Linux, open *Terminal* and paste:
 
    ```bash
-   curl -fsSL https://github.com/notdxbi/dxbi-stremio/releases/latest/download/install.sh | bash
+   curl -fsSL https://github.com/Kellogs12/dxbi-stremio/releases/latest/download/install.sh | bash
    ```
 
 2. Restart Stremio Enhanced.
 
-3. Go to *Settings → Enhanced* and switch the dx.bi plugin on. The theme is built into the plugin, so that's all you need.
+3. Go to *Settings → Enhanced* and switch the Hank plugin on. The theme is built into the plugin, so that's all you need.
 
 Updates are offered automatically inside Stremio Enhanced.
 
@@ -215,7 +216,7 @@ Updates are offered automatically inside Stremio Enhanced.
 <summary>Prefer to install the plugin by hand?</summary>
 <br>
 
-1. Download [`dxbi.plugin.js`](https://github.com/notdxbi/dxbi-stremio/releases/latest/download/dxbi.plugin.js).
+1. Download [`dxbi.plugin.js`](https://github.com/Kellogs12/dxbi-stremio/releases/latest/download/dxbi.plugin.js).
 2. In Stremio Enhanced, go to *Settings → Enhanced*, open *Open Plugins Folder* and put the file there.
 3. Restart and switch the plugin on.
 

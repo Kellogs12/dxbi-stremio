@@ -1,5 +1,29 @@
 # Changelog
 
+## 2.37.1
+
+- **Signed out, dx.bi's addons come in dx.bi's order.** TMDB Collections, Anime Catalogs, Torrentio, OpenSubtitles and Streaming Catalogs, as on dx.bi's own account, and Stremio's other visitor addons (YouTube, WatchHub, Public Domain Movies) are taken out. Cinemeta and Local Files stay first: Stremio doesn't let them move. Visitors from 2.37.0 get the same tidy-up once.
+- **Torrents on the web say what they need.** A browser can't download torrents, so on dx.bi on the web torrent streams are marked *Needs the app or debrid*, and picking one explains the two ways to watch it (the dx.bi app, or a debrid service in Torrentio) instead of failing in the player. The apps play torrents as before.
+
+## 2.37.0
+
+- **dx.bi works before you make an account.** Signed out (a new install, dx.bi on the web, or after signing out), dx.bi now sets itself up with the same addons as dx.bi's own setup: TMDB Collections, Anime Catalogs and Streaming Catalogs for Home's rows, and Torrentio for streams. No keys or debrid accounts are included. Each is added once, so one you remove stays removed. Signing in uses your account's own addons as before (none of these are added to it), and signing out sets them up again. Torrents play in the dx.bi app on computers, on TVs with *Play torrents on this TV*, and on phones with *Play torrents on this phone* or a streaming server; in a browser they need a streaming server.
+
+## 2.36.1
+
+- **Season packs from library addons on phones.** With a library addon like StremThru Store, an episode's stream list now also offers the matching file from your saved season packs, and it plays as that episode (your progress and Continue Watching stay the show's). A pack's own page lists its files as seasons and episodes, with extras under Specials. Thanks to @wsddssz (#82).
+- **Torrents on phones explain themselves.** Without a streaming server, a torrent used to ask a question nobody could see, so the video just never started. The phone now says what's needed (a debrid stream, a streaming server, or *Play torrents on this phone*).
+- **Links to another title play nowhere: they now open it.** Some addons list "streams" that are really links to another title's page. On TV they open that page, and phones leave them out of the stream list.
+- **Customise Home covers every row Home shows**, including rows from addons with their own types when *Video rows only* is off.
+- **Safer links on computers.** Links on title pages only leave the app as web or mail links, and the app window always stays on dx.bi.
+- dx.bi says dx.bi: messages that named Stremio when they meant the app now say dx.bi. Stremio is still named where you sign in, since that's the account you use.
+
+## 2.36.0
+
+- **The phone's tab bar fits the screen.** dx.bi runs full screen on phones, so the tab bar sat right on the bottom edge, where rounded screen corners and the swipe-up strip cut into Home and Profile. It now keeps clear of both.
+- **Library can be a tab on phones.** Turn on *Library in the tab bar* in dx.bi settings → Browsing & library, and Library sits beside Home, Discover and Search (also on the side when the phone is turned). It's off unless you switch it on; Profile → Library still works either way. (#90)
+- **Every subtitle language on TV and phones.** The TV and phone player only got 45 subtitle files, so with lots of languages whole languages (Bulgarian, for one) were missing where the computer had them. Now every language is there: three files in your language and English, two in each other. It also waits for slower subtitle addons until the list stops growing (at most 4 seconds), even when subtitles start off. (#95)
+
 ## 2.35.1
 
 - **dx.bi on the web has its settings.** In a browser (https://notdxbi.github.io/dxbi-web/), Settings now starts with dx.bi's own settings, grouped like the apps' and saved in that browser. Changes take effect straight away.
