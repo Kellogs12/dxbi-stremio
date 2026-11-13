@@ -140,6 +140,7 @@ class PlayerActivity : AppCompatActivity() {
         !packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
     private lateinit var clock: TextView
     private var showClock = true
+    private var seekStepMs = SEEK_STEP_MS
     private lateinit var seekFlash: TextView
     private var player: ExoPlayer? = null
     private val handler = Handler(Looper.getMainLooper())
@@ -230,6 +231,7 @@ class PlayerActivity : AppCompatActivity() {
         autoSkip = stream.optString("autoSkip", "off")
         showClock = stream.optBoolean("clock", true)
         torrent = stream.optBoolean("torrent", false)
+        seekStepMs = stream.optLong("seekTime", stream.optLong("seekStep", SEEK_STEP_MS)).coerceAtLeast(1_000L)
         findViewById<TextView>(R.id.title).text = stream.optString("title")
         findViewById<TextView>(R.id.subtitle).apply {
             text = stream.optString("subtitle")
@@ -286,8 +288,8 @@ class PlayerActivity : AppCompatActivity() {
             .setLoadControl(loadControl)
             .setAudioAttributes(AudioAttributes.Builder().setUsage(C.USAGE_MEDIA).setContentType(C.AUDIO_CONTENT_TYPE_MOVIE).build(), true)
             .setHandleAudioBecomingNoisy(true)
-            .setSeekBackIncrementMs(SEEK_STEP_MS)
-            .setSeekForwardIncrementMs(SEEK_STEP_MS)
+            .setSeekBackIncrementMs(seekStepMs)
+            .setSeekForwardIncrementMs(seekStepMs)
             .build()
         player = exo
         playerView.player = exo
@@ -520,7 +522,8 @@ class PlayerActivity : AppCompatActivity() {
     private fun seek(direction: Int) {
         val exo = player ?: return
         if (direction > 0) exo.seekForward() else exo.seekBack()
-        seekFlash.text = if (direction > 0) "+10 s   ${clock(exo.currentPosition)}" else "−10 s   ${clock(exo.currentPosition)}"
+        val stepSec = seekStepMs / 1000
+        seekFlash.text = if (direction > 0) "+$stepSec s   ${clock(exo.currentPosition)}" else "−$stepSec s   ${clock(exo.currentPosition)}"
         seekFlash.visibility = View.VISIBLE
         handler.removeCallbacks(hideFlash)
         handler.postDelayed(hideFlash, 900)

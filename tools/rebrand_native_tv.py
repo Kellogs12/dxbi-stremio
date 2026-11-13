@@ -58,10 +58,8 @@ def patch_strings(decoded_dir):
                 with open(p, "r", encoding="utf-8", errors="ignore") as f:
                     s = f.read()
 
-                # Change app name and brand
-                s = s.replace('<string name="app_name">Stremio</string>', '<string name="app_name">Hank</string>')
-                s = s.replace('>Stremio<', '>Hank<')
-                s = s.replace('Stremio', 'Hank')
+                # Change app name and brand safely within XML string tags
+                s = re.sub(r'(<string\b[^>]*>)(.*?)(</string>)', lambda m: m.group(1) + m.group(2).replace('Stremio', 'Hank') + m.group(3), s)
 
                 with open(p, "w", encoding="utf-8") as f:
                     f.write(s)

@@ -91,8 +91,10 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # If a release exists for the current tag or v2.35.1, attach the native apk
-          TARGET_TAG="${{ github.event.release.tag_name || 'v2.35.1' }}"
+          TARGET_TAG="${{ github.event.release.tag_name || github.ref_name }}"
+          if [ -z "$TARGET_TAG" ] || [ "$TARGET_TAG" = "main" ]; then
+            TARGET_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v2.37.1")
+          fi
           if gh release view "$TARGET_TAG" >/dev/null 2>&1; then
             echo "Attaching hank-tv-native.apk to release $TARGET_TAG..."
             gh release upload "$TARGET_TAG" hank-tv-native.apk --clobber

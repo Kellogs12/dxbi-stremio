@@ -247,6 +247,9 @@ class MainActivity : AppCompatActivity() {
 
     fun openExternal(url: String) {
         val uri = Uri.parse(url)
+        val scheme = uri.scheme?.lowercase()
+        if (scheme != "http" && scheme != "https") return
+
         // YouTube (trailers): the TV's YouTube app, asked for by name. Google TV hands a plain YouTube
         // link to a "no browser" stub instead of the app
         if (uri.host?.endsWith("youtube.com") == true || uri.host == "youtu.be") {
