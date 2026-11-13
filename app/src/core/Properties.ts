@@ -15,7 +15,8 @@ class Properties {
     public static enhancedPath = process.env.HANK_DATA_DIR || process.env.DXBI_DATA_DIR || (() => {
         const hankDir = join(Properties.baseDataPath, "hank");
         const dxbiDir = join(Properties.baseDataPath, "dxbi");
-        return existsSync(hankDir) || !existsSync(dxbiDir) ? hankDir : dxbiDir;
+        // Only prefer hankDir if it actually has plugins/data, not just an empty Electron userData shell
+        return existsSync(join(hankDir, "plugins")) || !existsSync(dxbiDir) ? hankDir : dxbiDir;
     })();
 
     public static themesPath = join(Properties.enhancedPath, "themes");

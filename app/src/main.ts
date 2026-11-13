@@ -36,7 +36,7 @@ import { setupAutoUpdate } from "./core/AutoUpdate";
 app.setName("Hank");
 const defaultUserData = app.getPath('userData');
 const legacyUserData = join(dirname(defaultUserData), "dxbi");
-if (!existsSync(defaultUserData) && existsSync(legacyUserData)) {
+if ((!existsSync(defaultUserData) || !existsSync(join(defaultUserData, "plugins"))) && existsSync(legacyUserData)) {
     app.setPath('userData', legacyUserData);
 }
 const userDataPath = app.getPath('userData');

@@ -44,9 +44,9 @@ export const gpuController = {
         }
 
         if (process.platform === 'darwin') {
-            // logger.info('Running on macOS, forcing Metal');
-            // app.commandLine.appendSwitch('use-angle', 'metal');
-            enabledFeatures.push("VideoToolboxVideoDecoder");
+            app.commandLine.appendSwitch('enable-gpu-rasterization');
+            app.commandLine.appendSwitch('enable-zero-copy');
+            enabledFeatures.push("VideoToolboxVideoDecoder", "CanvasOopRasterization");
         } else if (process.platform === 'win32') {
             const renderer = userRenderer === 'auto' ? 'd3d11' : userRenderer;
             logger.info(`Running on Windows, using ${renderer}`);
