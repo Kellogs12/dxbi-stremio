@@ -101,7 +101,7 @@ async function main() {
   listeners.push((msg) => {
     if (msg.method === "Debugger.scriptParsed" && msg.params.length > 200000 && !msg.params.url.startsWith("http")) {
       scriptChecks.push(send("Debugger.getScriptSource", { scriptId: msg.params.scriptId })
-        .then(({ scriptSource }) => { if (scriptSource.includes("@name dx.bi")) pluginScripts.add(msg.params.scriptId); })
+        .then(({ scriptSource }) => { if (scriptSource.includes("@name dx.bi") || scriptSource.includes("@name Hank")) pluginScripts.add(msg.params.scriptId); })
         .catch(() => {}));
     }
     // Anything that would freeze the page for the remaining checks: report it and carry on

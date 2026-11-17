@@ -4866,8 +4866,100 @@ html.dx-tv {
 }
 
 .dx-tv #app [class*="meta-item-container"] [class*="poster-container"] {
-    transform: none !important;
-    scale: none !important;
+    transform: none;
+    scale: none;
+    transition: transform 0.16s cubic-bezier(0.2, 0, 0, 1) !important;
+}
+
+.dx-tv #app [class*="meta-item-container"]:focus-within [class*="poster-container"] {
+    transform: scale(1.06) !important;
+    z-index: 3;
+}
+
+/* TV: Netflix-style 1-line titles visible beneath each row poster */
+.dx-tv #app [class*="board-content-"]:not([class*="board-content-container"]) [class*="meta-row"] [class*="meta-item-container"] [class*="title-bar-container"],
+.dx-tv #app [class*="search-content"] [class*="meta-row"] [class*="meta-item-container"] [class*="title-bar-container"] {
+    display: flex !important;
+}
+
+.dx-tv #app [class*="meta-item-container"]:focus-within [class*="title-bar-container"] [class*="title-label"] {
+    color: #fff !important;
+    font-weight: 600;
+}
+
+/* TV: Single Netflix spotlight billboard (prevent duplicate hero or inactive slide bleed) */
+.dx-tv .dx-hero ~ .dx-hero,
+.dx-tv .dx-hero-slide:not(.is-active),
+.dx-tv #app [class*="board-header-container"] {
+    display: none !important;
+}
+
+/* TV: Collapsible Netflix left menu rail (Search, Home, Discover, Library, Addons, Settings) */
+html.dx-tv:not(.dx-phone) #app [class*="main-nav-bars-container"] > nav[class*="vertical-nav-bar"],
+html.dx-tv:not(.dx-phone) #app nav[class*="vertical-nav-bar"] {
+    position: fixed !important;
+    inset: 0 auto 0 0 !important;
+    z-index: 45 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: stretch !important;
+    width: 4.25rem !important;
+    height: 100vh !important;
+    padding: 1.5rem 0.6rem !important;
+    gap: 0.65rem !important;
+    background: linear-gradient(90deg, rgba(10, 10, 14, 0.96) 72%, rgba(10, 10, 14, 0)) !important;
+    transition: width 0.18s cubic-bezier(0.2, 0, 0, 1), background-color 0.18s !important;
+}
+
+html.dx-tv:not(.dx-phone) #app nav[class*="vertical-nav-bar"]:focus-within {
+    width: 13.5rem !important;
+    background: rgba(10, 10, 14, 0.98) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+html.dx-tv:not(.dx-phone) #app nav[class*="vertical-nav-bar"] a[class*="nav-tab-button"] {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    padding: 0.65rem 0.75rem !important;
+    border-radius: 0.5rem !important;
+    border-left: 3px solid transparent !important;
+}
+
+html.dx-tv:not(.dx-phone) #app nav[class*="vertical-nav-bar"] a[class*="nav-tab-button"].selected {
+    border-left-color: var(--dx-accent) !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+}
+
+html.dx-tv:not(.dx-phone) #app nav[class*="vertical-nav-bar"] a[class*="nav-tab-button"]::after {
+    display: none !important;
+}
+
+html.dx-tv:not(.dx-phone) #app nav[class*="vertical-nav-bar"] a[class*="nav-tab-button"] svg {
+    display: block !important;
+    width: 1.4rem !important;
+    height: 1.4rem !important;
+    flex: none !important;
+}
+
+html.dx-tv:not(.dx-phone) #app nav[class*="vertical-nav-bar"] a[class*="nav-tab-button"] [class*="label"] {
+    opacity: 0;
+    max-width: 0;
+    margin-left: 0;
+    overflow: hidden;
+    transition: opacity 0.15s, max-width 0.18s, margin-left 0.18s;
+}
+
+html.dx-tv:not(.dx-phone) #app nav[class*="vertical-nav-bar"]:focus-within a[class*="nav-tab-button"] [class*="label"] {
+    opacity: 1;
+    max-width: 9rem;
+    margin-left: 0.85rem;
+}
+
+html.dx-tv:not(.dx-phone) #app [class*="route-content"] {
+    padding-left: 3.75rem !important;
 }
 
 /* TV: badges appear as they are, rather than fading in together (a row's worth at a time) */

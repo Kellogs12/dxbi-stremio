@@ -353,13 +353,26 @@
   // Options for dx.bi's in-page player, which the TV doesn't use (it has its own player)
   const DESKTOP_ONLY = new Set(["playerExtras", "enhance", "seekPreviews", "subtitleStyle", "subtitleFont", "subtitleCustomFont",
     "convertVideo", "subtitlesStart", "hdrSubtitles", "pictureSound", "streamStats", "preloadNext", "skipFiller",
-    "rememberPlayback", "playerKeys", "pip", "externalPlayer", "remainingTime"]);
+    "rememberPlayback", "playerKeys", "pip", "remainingTime"]);
+
+  const tvOption = (o) => o.key === "externalPlayer" ? {
+    ...o,
+    type: "select",
+    label: "External player",
+    description: "Play streams in Hank's built-in ExoPlayer, or hand them to Just Player or VLC when installed (also available in the player's Picture & sound menu).",
+    defaultValue: "off",
+    options: [
+      { value: "off", label: "Built-in (ExoPlayer)" },
+      { value: "just", label: "Just Player" },
+      { value: "vlc", label: "VLC" },
+    ],
+  } : { ...o, label: forDevice(o.label), description: forDevice(o.description) };
 
   function settingsSheet() {
     const plugin = PLUGIN.replace(/\.plugin\.js$/, "");
     // (no remote on a phone, so no highlight for it)
     const schema = (schemas[plugin] || []).filter((o) => !DESKTOP_ONLY.has(o.key) && !(PHONE && o.key === "focusColour"))
-      .map((o) => ({ ...o, label: forDevice(o.label), description: forDevice(o.description) }));
+      .map(tvOption);
     ensureStyle();
     closeModal();
     const el = document.createElement("div");
@@ -773,6 +786,7 @@
         opacity: profile.subtitlesOpacity,
       },
       url,
+      externalPlayer: String(readSettings(PLUGIN.replace(/\.plugin\.js$/, "")).externalPlayer || (dx && dx.settings && dx.settings.externalPlayer) || "off"),
       title: meta.name || state.title || stream.title || "Hank",
       subtitle: episode,
       startMs: resumeMs,
@@ -1114,6 +1128,55 @@
         clearInterval(searchWatch);
       }
     }, 100);
+  }
+
+  // Netflix TV Left Menu Rail navigation: pressing Left at the left edge of any row or button
+  // jumps straight into the left vertical-nav-bar at any scroll depth; pressing Right returns.
+  let lastContentFocus = null;
+  if (!PHONE) {
+    window.addEventListener("focusin", (e) => {
+      const t = e.target;
+      if (t && t.nodeType === 1 && !t.closest('nav[class*="vertical-nav-bar"]') && !t.closest(".dxtv-modal")) {
+        lastContentFocus = t;
+      }
+    }, true);
+
+    window.addEventListener("keydown", (e) => {
+      if (openModal || document.querySelector(".dxtv-modal, .dxe-modal")) return;
+      const active = document.activeElement;
+      if (!active || (typable(active) && active.dataset.dxtvTyping)) return;
+      const nav = document.querySelector('#app nav[class*="vertical-nav-bar"]');
+      if (!nav) return;
+
+      if (e.key === "ArrowRight" && nav.contains(active)) {
+        const target = (lastContentFocus && lastContentFocus.isConnected && lastContentFocus.offsetParent)
+          ? lastContentFocus
+          : document.querySelector('.dx-hero .dx-btn, #app [class*="meta-item-container"] a[href], #app [class*="meta-item-container"][tabindex]');
+        if (target) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          target.focus({ preventScroll: true });
+        }
+        return;
+      }
+
+      if (e.key === "ArrowLeft" && !nav.contains(active)) {
+        const card = active.closest('[class*="meta-item-container"]');
+        if (card && card.previousElementSibling) return;
+        const heroBtn = active.closest(".dx-hero-actions .dx-btn");
+        if (heroBtn && heroBtn.previousElementSibling) return;
+        const rect = active.getBoundingClientRect();
+        if (!card && !heroBtn && rect.left > 220) return;
+
+        const tab = nav.querySelector('a[class*="nav-tab-button"].selected') || nav.querySelector('a[class*="nav-tab-button"]');
+        if (tab) {
+          lastContentFocus = active;
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          tab.focus({ preventScroll: true });
+        }
+      }
+    }, true);
   }
 
   function onRoute() {

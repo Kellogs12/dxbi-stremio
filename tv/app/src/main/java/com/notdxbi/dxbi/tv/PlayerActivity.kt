@@ -147,6 +147,10 @@ class PlayerActivity : AppCompatActivity() {
     private var closed = false
     private var lastError: String? = null
     private var lastText: List<String?> = emptyList()
+    private var streamUrl = ""
+    private var streamTitle = ""
+    private var streamStartMs = 0L
+    private var streamHeaders = mapOf<String, String>()
 
     private val reportProgress = object : Runnable {
         override fun run() {
@@ -249,6 +253,20 @@ class PlayerActivity : AppCompatActivity() {
         // Addons can ask for headers on their links (Stremio's proxyHeaders)
         val headers = mutableMapOf<String, String>()
         stream.optJSONObject("headers")?.let { h -> h.keys().forEach { k -> headers[k] = h.optString(k) } }
+        streamUrl = url
+        streamTitle = listOf(stream.optString("title"), stream.optString("subtitle")).filter { it.isNotEmpty() }.joinToString(" · ")
+        streamStartMs = stream.optLong("startMs", 0L)
+        streamHeaders = headers
+
+        val extPref = stream.optString("externalPlayer", "off")
+        val targetPkg = when (extPref) {
+            "just" -> "com.brouken.player"
+            "vlc" -> "org.videolan.vlc"
+            else -> ""
+        }
+        if (targetPkg.isNotEmpty() && openInExternalPlayer(targetPkg, streamStartMs)) {
+            return
+        }
         val http = OkHttpClient.Builder()
             .connectTimeout(15, TimeUnit.SECONDS)
             // a torrent's first bytes wait for its details and first pieces to come from peers
@@ -684,8 +702,67 @@ class PlayerActivity : AppCompatActivity() {
         return if (s >= 3600) "%d:%02d:%02d".format(s / 3600, s / 60 % 60, s % 60) else "%d:%02d".format(s / 60, s % 60)
     }
 
+    fun externalPlayers(): List<Pair<String, String>> = listOf(
+        "com.brouken.player" to "Just Player",
+        "org.videolan.vlc" to "VLC",
+    ).filter { (pkg, _) ->
+        try {
+            packageManager.getPackageInfo(pkg, 0)
+            true
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    fun openInExternalPlayer(pkg: String, posMs: Long = player?.currentPosition ?: streamStartMs): Boolean {
+        if (streamUrl.isEmpty()) return false
+        player?.pause()
+        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
+            setDataAndType(Uri.parse(streamUrl), "video/*")
+            setPackage(pkg)
+            putExtra("title", streamTitle)
+            putExtra("return_result", true)
+            if (posMs > 0L) {
+                putExtra("position", posMs.toInt())
+                putExtra("from_start", false)
+            }
+            if (streamHeaders.isNotEmpty()) {
+                putExtra("headers", streamHeaders.flatMap { listOf(it.key, it.value) }.toTypedArray())
+            }
+        }
+        return try {
+            @Suppress("DEPRECATION")
+            startActivityForResult(intent, REQ_EXTERNAL_PLAYER)
+            true
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: android.content.Intent?) {
+        @Suppress("DEPRECATION")
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode != REQ_EXTERNAL_PLAYER) return
+        val pos = data?.let {
+            it.getLongExtra("position", -1L).takeIf { v -> v >= 0 }
+                ?: it.getIntExtra("position", -1).takeIf { v -> v >= 0 }?.toLong()
+                ?: it.getLongExtra("extra_position", -1L).takeIf { v -> v >= 0 }
+        }
+        val dur = data?.let {
+            it.getLongExtra("duration", -1L).takeIf { v -> v > 0 }
+                ?: it.getIntExtra("duration", -1).takeIf { v -> v > 0 }?.toLong()
+                ?: it.getLongExtra("extra_duration", -1L).takeIf { v -> v > 0 }
+        }
+        val ended = resultCode == RESULT_OK && data?.getStringExtra("end_by") == "playback_completion"
+        if (player == null || pos != null || ended) {
+            finishWith(ended = ended, positionMs = pos, durationMs = dur)
+        }
+    }
+
     companion object {
         const val EXTRA_STREAM = "stream"
+        private const val REQ_EXTERNAL_PLAYER = 901
         private const val PROGRESS_INTERVAL_MS = 5000L
         private const val SEEK_STEP_MS = 10_000L
     }

@@ -299,6 +299,11 @@ class PlayerControls(
         for ((value, name) in zooms) row(name, zoom.mode == value) { zoom.set(value) }
         heading("Sound")
         for (mode in SoundMode.MODES) row(mode.label, sound.mode === mode) { sound.mode = mode }
+        val ext = activity.externalPlayers()
+        if (ext.isNotEmpty()) {
+            heading("External player")
+            for ((pkg, label) in ext) row("Open in $label", false) { activity.openInExternalPlayer(pkg) }
+        }
         focusFirst()
     }
 
