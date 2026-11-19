@@ -1674,12 +1674,13 @@
     animeCaption(card, info, poster);
 
     const applyGenres = (meta) => {
+      if (!card || !card.dataset) return;
       const g = (meta && Array.isArray(meta.genres) ? meta.genres : []).slice(0, 3);
       if (!g.length) return;
       const gText = g.join(" · ");
       card.dataset.dxGenres = gText;
-      const tb = card.querySelector('[class*="title-bar-container"]');
-      if (tb && tb.dataset.dxGenres !== gText) tb.dataset.dxGenres = gText;
+      const tb = card.querySelector && card.querySelector('[class*="title-bar-container"]');
+      if (tb && tb.dataset && tb.dataset.dxGenres !== gText) tb.dataset.dxGenres = gText;
     };
     if (known && known.genres && known.genres.length) applyGenres(known);
 
@@ -1691,7 +1692,7 @@
       return;
     }
     if (badge && badge.dataset.key === key) {
-      if (!card.dataset.dxGenres && !(known && known.genres && known.genres.length)) getInfo(info.type, info.id, null, true).then(applyGenres);
+      if (card.dataset && !card.dataset.dxGenres && !(known && known.genres && known.genres.length)) getInfo(info.type, info.id, null, true).then(applyGenres);
       return;
     }
     if (badge) badge.remove();

@@ -49,6 +49,7 @@ function open(main: BrowserWindow, hash: string, at: number) {
             preload: join(__dirname, "..", "preload", "index.js"),
             webSecurity: false,
             nodeIntegration: false,
+            sandbox: false,
             contextIsolation: true,
             spellcheck: false,
             backgroundThrottling: false,

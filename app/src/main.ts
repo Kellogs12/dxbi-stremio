@@ -95,6 +95,7 @@ async function createWindow() {
             // protect the main process, and nodeIntegration stays off in the renderer.
             webSecurity: false,
             nodeIntegration: false,
+            sandbox: false,
             contextIsolation: true,
             // Additional security hardening/performance settings
             allowRunningInsecureContent: false,
