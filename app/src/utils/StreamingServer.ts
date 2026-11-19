@@ -1,6 +1,6 @@
 import { fork, execSync, execFileSync } from "child_process";
 import * as unzipper from "unzipper";
-import { createWriteStream, existsSync, mkdirSync, chmodSync, unlinkSync, readFileSync, writeFileSync, statSync, renameSync } from "fs";
+import { createWriteStream, existsSync, mkdirSync, chmodSync, unlinkSync, readFileSync, writeFileSync, statSync, renameSync, rmSync } from "fs";
 import { basename, join } from "path";
 import { getLogger } from "./logger";
 import Properties from "../core/Properties";
@@ -193,32 +193,25 @@ for (const name of ["spawn", "spawnSync", "execFile", "execFileSync", "exec", "e
             this.logger.info("FFmpeg archive downloaded. Extracting...");
 
             if (process.platform === "linux") {
-                // Extract tar.xz archive
-                // First, list contents to find the directory name
-                const listOutput = execSync(`tar -tf "${archivePath}" | head -1`, { encoding: "utf8" });
-                const extractDir = listOutput.trim().split("/")[0];
+                const listOutput = execFileSync("tar", ["-tf", archivePath], { encoding: "utf8" });
+                const extractDir = listOutput.split(/\r?\n/)[0].trim().split("/")[0];
 
-                // Extract the archive
-                execSync(`tar -xf "${archivePath}" -C "${targetDir}"`, { encoding: "utf8" });
+                execFileSync("tar", ["-xf", archivePath, "-C", targetDir], { encoding: "utf8" });
 
-                // Move ffmpeg and ffprobe to the streamingserver directory
                 const extractedDir = join(targetDir, extractDir);
-                execSync(`mv "${join(extractedDir, "ffmpeg")}" "${ffmpegPath}"`, { encoding: "utf8" });
-                execSync(`mv "${join(extractedDir, "ffprobe")}" "${ffprobePath}"`, { encoding: "utf8" });
+                renameSync(join(extractedDir, "ffmpeg"), ffmpegPath);
+                renameSync(join(extractedDir, "ffprobe"), ffprobePath);
 
-                // Set executable permissions
                 chmodSync(ffmpegPath, 0o755);
                 chmodSync(ffprobePath, 0o755);
 
-                // Cleanup: remove extracted directory and archive
-                execSync(`rm -rf "${extractedDir}"`, { encoding: "utf8" });
+                rmSync(extractedDir, { recursive: true, force: true });
                 unlinkSync(archivePath);
 
                 this.logger.info("FFmpeg and FFprobe extracted successfully.");
                 return true;
             } else if (process.platform === "darwin") {
-                // Handle macOS zip file
-                execSync(`unzip -o "${archivePath}" -d "${targetDir}"`, { encoding: "utf8" });
+                execFileSync("unzip", ["-o", archivePath, "-d", targetDir], { encoding: "utf8" });
                 chmodSync(ffmpegPath, 0o755);
                 unlinkSync(archivePath);
 
@@ -228,8 +221,7 @@ for (const name of ["spawn", "spawnSync", "execFile", "execFileSync", "exec", "e
                 await this.downloadFile(this.getMacOSFFprobeUrl(), ffprobeArchivePath);
                 this.logger.info("FFprobe archive downloaded. Extracting...");
                 
-                // Extract ffprobe
-                execSync(`unzip -o "${ffprobeArchivePath}" -d "${targetDir}"`, { encoding: "utf8" });
+                execFileSync("unzip", ["-o", ffprobeArchivePath, "-d", targetDir], { encoding: "utf8" });
                 chmodSync(ffprobePath, 0o755);
                 unlinkSync(ffprobeArchivePath);
                 return true;

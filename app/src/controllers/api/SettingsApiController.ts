@@ -1,4 +1,5 @@
 import { ipcMain } from 'electron';
+import { basename, join } from 'path';
 import PluginOption from '../../interfaces/PluginSettingSchema';
 import { ENHANCED_PLUGINS_API, FILE_EXTENSIONS } from '../../constants';
 import Properties from '../../core/Properties';
@@ -7,53 +8,66 @@ import { existsSync, readFileSync, writeFileSync } from 'fs';
 
 const registeredPluginSchemas: Record<string, PluginOption[]> = {};
 
+function safePluginName(name: unknown): string {
+    return typeof name === 'string' ? basename(name.trim()) : '';
+}
+
+function configPathFor(pluginName: string): string {
+    return join(Properties.pluginsPath, `${pluginName}${FILE_EXTENSIONS.PLUGIN_CONFIG}`);
+}
+
 export function setupPluginSettingsAPI() {
-    ipcMain.handle(ENHANCED_PLUGINS_API.GET_SETTING, (_, pluginFileName, key) => {
-        let configFileExists = existsSync(`${Properties.pluginsPath}//${pluginFileName}${FILE_EXTENSIONS.PLUGIN_CONFIG}`);
-        if(!configFileExists) {
+    ipcMain.handle(ENHANCED_PLUGINS_API.GET_SETTING, (_, rawPluginName, key) => {
+        const pluginFileName = safePluginName(rawPluginName);
+        if (!pluginFileName) return Promise.reject(new Error("Invalid plugin file name."));
+        const configPath = configPathFor(pluginFileName);
+        if(!existsSync(configPath)) {
             logger.warn(`No config found for plugin ${pluginFileName}`);
-            writeFileSync(`${Properties.pluginsPath}//${pluginFileName}${FILE_EXTENSIONS.PLUGIN_CONFIG}`, JSON.stringify({}));
+            writeFileSync(configPath, JSON.stringify({}));
             return Promise.reject(new Error(`No config found (${pluginFileName}${FILE_EXTENSIONS.PLUGIN_CONFIG})!`));
         }
 
-        let readConfig = readFileSync(`${Properties.pluginsPath}//${pluginFileName}${FILE_EXTENSIONS.PLUGIN_CONFIG}`, 'utf-8');
+        let readConfig = readFileSync(configPath, 'utf-8');
         let jsonConfig = JSON.parse(readConfig);
 
         return jsonConfig[key] ?? null;
     });
 
-    ipcMain.handle(ENHANCED_PLUGINS_API.GET_SETTINGS, (_, pluginFileName) => {
-        let configFileExists = existsSync(`${Properties.pluginsPath}//${pluginFileName}${FILE_EXTENSIONS.PLUGIN_CONFIG}`);
-        if(!configFileExists) {
+    ipcMain.handle(ENHANCED_PLUGINS_API.GET_SETTINGS, (_, rawPluginName) => {
+        const pluginFileName = safePluginName(rawPluginName);
+        if (!pluginFileName) return Promise.reject(new Error("Invalid plugin file name."));
+        const configPath = configPathFor(pluginFileName);
+        if(!existsSync(configPath)) {
             logger.warn(`No config found for plugin ${pluginFileName}`);
-            writeFileSync(`${Properties.pluginsPath}//${pluginFileName}${FILE_EXTENSIONS.PLUGIN_CONFIG}`, JSON.stringify({}));
+            writeFileSync(configPath, JSON.stringify({}));
             return Promise.reject(new Error(`No config found (${pluginFileName}${FILE_EXTENSIONS.PLUGIN_CONFIG})!`));
         }
 
-        let readConfig = readFileSync(`${Properties.pluginsPath}//${pluginFileName}${FILE_EXTENSIONS.PLUGIN_CONFIG}`, 'utf-8');
+        let readConfig = readFileSync(configPath, 'utf-8');
         let jsonConfig = JSON.parse(readConfig);
         if(!jsonConfig) return {};
 
         return jsonConfig ?? {};
     });
 
-    ipcMain.handle(ENHANCED_PLUGINS_API.SAVE_SETTING, (event, pluginFileName, key, value) => {
-        if (typeof pluginFileName !== 'string' || typeof key !== 'string') return false;
+    ipcMain.handle(ENHANCED_PLUGINS_API.SAVE_SETTING, (event, rawPluginName, key, value) => {
+        const pluginFileName = safePluginName(rawPluginName);
+        if (!pluginFileName || typeof key !== 'string') return false;
 
-        let configFileExists = existsSync(`${Properties.pluginsPath}//${pluginFileName}${FILE_EXTENSIONS.PLUGIN_CONFIG}`);
-        if(!configFileExists) {
+        const configPath = configPathFor(pluginFileName);
+        if(!existsSync(configPath)) {
             logger.info(`No config found for plugin ${pluginFileName}. Creating new config file with setting ${key}.`);
-            writeFileSync(`${Properties.pluginsPath}//${pluginFileName}${FILE_EXTENSIONS.PLUGIN_CONFIG}`, JSON.stringify({}));
+            writeFileSync(configPath, JSON.stringify({}));
         }
 
-        let readConfig = readFileSync(`${Properties.pluginsPath}//${pluginFileName}${FILE_EXTENSIONS.PLUGIN_CONFIG}`, 'utf-8');
+        let readConfig = readFileSync(configPath, 'utf-8');
 
         let jsonConfig = JSON.parse(readConfig);
         if (!jsonConfig) jsonConfig = {};
 
         jsonConfig[key] = value;
         
-        writeFileSync(`${Properties.pluginsPath}//${pluginFileName}${FILE_EXTENSIONS.PLUGIN_CONFIG}`, JSON.stringify(jsonConfig, null, 2));
+        writeFileSync(configPath, JSON.stringify(jsonConfig, null, 2));
 
         const channel = `${ENHANCED_PLUGINS_API.ON_SETTINGS_SAVED}:${pluginFileName}`;
         event.sender.send(channel, jsonConfig);
@@ -61,22 +75,23 @@ export function setupPluginSettingsAPI() {
         return true;
     });
 
-    ipcMain.handle(ENHANCED_PLUGINS_API.REGISTER_SETTINGS, (_, pluginFileName, pluginSchema) => {
-        if (typeof pluginFileName !== 'string' || !Array.isArray(pluginSchema)) {
+    ipcMain.handle(ENHANCED_PLUGINS_API.REGISTER_SETTINGS, (_, rawPluginName, pluginSchema) => {
+        const pluginFileName = safePluginName(rawPluginName);
+        if (!pluginFileName || !Array.isArray(pluginSchema)) {
             logger.error("Invalid plugin options schema received. Expected an array of options.");
             return Promise.reject(new Error("Invalid plugin options schema. Ensure it follows the correct structure."));
         }
 
-        let pluginFile = existsSync(`${Properties.pluginsPath}//${pluginFileName}${FILE_EXTENSIONS.PLUGIN}`);
+        let pluginFile = existsSync(join(Properties.pluginsPath, `${pluginFileName}${FILE_EXTENSIONS.PLUGIN}`));
         if(!pluginFile) {
             logger.error(`Plugin file not found for registering options: ${pluginFileName}${FILE_EXTENSIONS.PLUGIN}`);
             return Promise.reject(new Error("Plugin file not found."));
         }
 
-        let configFileExists = existsSync(`${Properties.pluginsPath}//${pluginFileName}${FILE_EXTENSIONS.PLUGIN_CONFIG}`);
-        if(!configFileExists) {
+        const configPath = configPathFor(pluginFileName);
+        if(!existsSync(configPath)) {
             logger.info(`No config found for plugin ${pluginFileName}. Creating new config file.`);
-            writeFileSync(`${Properties.pluginsPath}//${pluginFileName}${FILE_EXTENSIONS.PLUGIN_CONFIG}`, JSON.stringify({}));
+            writeFileSync(configPath, JSON.stringify({}));
         }
         
         if(registeredPluginSchemas[pluginFileName]) {
@@ -89,8 +104,9 @@ export function setupPluginSettingsAPI() {
         return true;
     });
 
-    ipcMain.handle(ENHANCED_PLUGINS_API.CLEAR_REGISTERED_SETTINGS, (_, pluginFileName) => {
-        if(registeredPluginSchemas[pluginFileName]) {
+    ipcMain.handle(ENHANCED_PLUGINS_API.CLEAR_REGISTERED_SETTINGS, (_, rawPluginName) => {
+        const pluginFileName = safePluginName(rawPluginName);
+        if(pluginFileName && registeredPluginSchemas[pluginFileName]) {
             delete registeredPluginSchemas[pluginFileName];
             return true;
         }
@@ -98,8 +114,9 @@ export function setupPluginSettingsAPI() {
         return false;
     });
 
-    ipcMain.handle(ENHANCED_PLUGINS_API.GET_REGISTERED_SETTINGS, (_, pluginFileName) => {
-        if (typeof pluginFileName !== 'string') {
+    ipcMain.handle(ENHANCED_PLUGINS_API.GET_REGISTERED_SETTINGS, (_, rawPluginName) => {
+        const pluginFileName = safePluginName(rawPluginName);
+        if (!pluginFileName) {
             logger.error("Invalid plugin file name received for getting options.");
             return Promise.reject("Invalid plugin file name.");
         }

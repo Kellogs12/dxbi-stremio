@@ -86,10 +86,21 @@ check("scripts parse (plugin, TV, phone engine, webOS)", () => {
     "tv/app/src/mobile/assets/dxbi-engine.js",
     "webos/app/hank-webos.js",
     "webos/service/launch.js",
-    "tools/package-webos.mjs"
+    "tools/package-webos.mjs",
+    "tools/preserve-hank.mjs"
   ]) {
     execFileSync(process.execPath, ["--check", join(root, f)], { stdio: "pipe" });
   }
+});
+
+check("TV Netflix genre bar, Categories modal and card genre sub-labels stay wired", () => {
+  const tvJs = read("tv/app/src/main/assets/dxbi-tv.js");
+  assert.match(tvJs, /const TV_GENRES = \[/, "missing TV_GENRES in dxbi-tv.js");
+  assert.match(tvJs, /function applyHomeGenreFilter\(genre\)/, "missing applyHomeGenreFilter in dxbi-tv.js");
+  assert.match(tvJs, /function openCategoriesModal\(/, "missing openCategoriesModal in dxbi-tv.js");
+  assert.match(tvJs, /function ensureGenreUi\(\)/, "missing ensureGenreUi in dxbi-tv.js");
+  assert.match(plugin, /card\.dataset\.dxGenres\s*=/, "plugin does not set card.dataset.dxGenres");
+  assert.match(css, /\[data-dx-genres\]::after/, "theme CSS is missing [data-dx-genres]::after sub-label rule");
 });
 
 if (failures) {

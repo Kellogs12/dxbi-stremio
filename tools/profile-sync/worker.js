@@ -134,6 +134,13 @@ export default {
         "INSERT INTO entries (account, k, t, v, s) VALUES (?, ?, ?, ?, ?) ON CONFLICT (account, k) DO UPDATE SET t = excluded.t, v = excluded.v, s = excluded.s WHERE excluded.t > entries.t"
       );
       await env.DB.batch(writes.map((e) => upsert.bind(account, e.k, e.t, e.v, now)));
+      const after = await env.DB.prepare("SELECT COALESCE(SUM(LENGTH(v)), 0) AS total FROM entries WHERE account = ?").bind(account).all();
+      const total = Number(after && after.results && after.results[0] && after.results[0].total) || 0;
+      if (total > MAX_ACCOUNT) {
+        const revert = env.DB.prepare("DELETE FROM entries WHERE account = ? AND k = ? AND s = ?");
+        await env.DB.batch(writes.map((e) => revert.bind(account, e.k, now)));
+        return reply(request, 413, { error: "These profiles are too big to sync." });
+      }
     }
 
     // What changed since this device last looked (but not what it just sent)

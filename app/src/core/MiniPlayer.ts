@@ -48,7 +48,7 @@ function open(main: BrowserWindow, hash: string, at: number) {
             // the same page setup as the main window (main.ts), so dx.bi runs in it too
             preload: join(__dirname, "..", "preload", "index.js"),
             webSecurity: false,
-            nodeIntegration: true,
+            nodeIntegration: false,
             contextIsolation: true,
             spellcheck: false,
             backgroundThrottling: false,

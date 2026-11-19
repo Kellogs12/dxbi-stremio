@@ -70,7 +70,7 @@ dx.bi sets up Stremio's streaming server by itself (it's what plays torrents), a
 <summary>Prefer not to install anything?</summary>
 <br>
 
-Download [`dxbi-portable-x64.exe`](https://github.com/notdxbi/dxbi-stremio/releases/latest/download/dxbi-portable-x64.exe) instead: it runs straight away, without installing.
+Download [`hank-portable-x64.exe`](https://github.com/Kellogs12/dxbi-stremio/releases/latest/download/hank-portable-x64.exe) instead: it runs straight away, without installing.
 </details>
 
 ### On a Mac
@@ -95,14 +95,14 @@ xattr -dr com.apple.quarantine /Applications/dx.bi.app
 
 ### On Linux
 
-1. Right-click the downloaded `dxbi-linux-x86_64.AppImage` → *Properties* → *Permissions*, and tick **Allow executing file as program** (or run `chmod +x dxbi-linux-x86_64.AppImage`).
+1. Right-click the downloaded `hank-linux-x86_64.AppImage` → *Properties* → *Permissions*, and tick **Allow executing file as program** (or run `chmod +x hank-linux-x86_64.AppImage`).
 2. Double-click it to open dx.bi, and sign in with your Stremio account.
 
 <details>
 <summary>It doesn't open?</summary>
 <br>
 
-Some distributions need *FUSE* for AppImages. On Ubuntu and Debian: `sudo apt install libfuse2`. On a Raspberry Pi or another ARM computer, download [`dxbi-linux-arm64.AppImage`](https://github.com/notdxbi/dxbi-stremio/releases/latest/download/dxbi-linux-arm64.AppImage) instead.
+Some distributions need *FUSE* for AppImages. On Ubuntu and Debian: `sudo apt install libfuse2`. On a Raspberry Pi or another ARM computer, download [`hank-linux-arm64.AppImage`](https://github.com/Kellogs12/dxbi-stremio/releases/latest/download/hank-linux-arm64.AppImage) instead.
 </details>
 
 ### On a TV
@@ -141,7 +141,7 @@ Good to know:
 
 dx.bi for Android is its own app, made for phones and tablets: native screens with Home, Discover, Search, Addons and Profile tabs, a player worked by touch, downloads, Chromecast and picture-in-picture. It installs next to dx.bi TV and doesn't replace it.
 
-**1. Download it.** On the phone, open [**dxbi-mobile.apk**](https://github.com/notdxbi/dxbi-stremio/releases/latest/download/dxbi-mobile.apk).
+**1. Download it.** On the phone, open [**hank-mobile.apk**](https://github.com/Kellogs12/dxbi-stremio/releases/latest/download/hank-mobile.apk).
 
 **2. Install it.** Open the download. The first time, Android asks whether your browser (or Files app) may install apps: choose **Settings**, turn it on, go back, and choose **Install**.
 
@@ -160,7 +160,7 @@ dx.bi for iPhone (iOS 18 or later) has its own screens in Apple's style, Liquid 
 
 **1. Get a sideloading app.** [SideStore](https://sidestore.io) (refreshes the app on the phone itself), [AltStore](https://altstore.io) or, from a computer, [Sideloadly](https://sideloadly.io). Set it up with your Apple ID as its site explains.
 
-**2. Download dx.bi.** On the phone, open [**dxbi.ipa**](https://github.com/notdxbi/dxbi-stremio/releases/latest/download/dxbi.ipa) and save it to Files (or download it on the computer for Sideloadly).
+**2. Download Hank.** On the phone, open [**hank.ipa**](https://github.com/Kellogs12/dxbi-stremio/releases/latest/download/hank.ipa) and save it to Files (or download it on the computer for Sideloadly).
 
 **3. Install it** with the sideloading app (in SideStore or AltStore: *My Apps → +*, then choose dxbi.ipa). Then **sign in** with your Stremio account.
 

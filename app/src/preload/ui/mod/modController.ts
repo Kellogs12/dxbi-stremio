@@ -22,34 +22,35 @@ export const modController = {
         }
 
         const pluginBaseName = pluginName.split(FILE_EXTENSIONS.PLUGIN)[0];
+        const pluginLiteral = JSON.stringify(pluginBaseName);
 
         const scopedScript = `
         (function() {
             const StremioEnhancedAPI = {
                 logger: {
-                    info: (message) => window.StremioEnhancedAPI.info('${pluginBaseName}', message),
-                    warn: (message) => window.StremioEnhancedAPI.warn('${pluginBaseName}', message),
-                    error: (message) => window.StremioEnhancedAPI.error('${pluginBaseName}', message)
+                    info: (message) => window.StremioEnhancedAPI.info(${pluginLiteral}, message),
+                    warn: (message) => window.StremioEnhancedAPI.warn(${pluginLiteral}, message),
+                    error: (message) => window.StremioEnhancedAPI.error(${pluginLiteral}, message)
                 },
-                getSetting: (key) => window.StremioEnhancedAPI.getSetting('${pluginBaseName}', key),
-                saveSetting: (key, value) => window.StremioEnhancedAPI.saveSetting('${pluginBaseName}', key, value),
-                registerSettings: (schema) => window.StremioEnhancedAPI.registerSettings('${pluginBaseName}', schema),
-                onSettingsSaved: (callback) => window.StremioEnhancedAPI.onSettingsSaved('${pluginBaseName}', callback),
+                getSetting: (key) => window.StremioEnhancedAPI.getSetting(${pluginLiteral}, key),
+                saveSetting: (key, value) => window.StremioEnhancedAPI.saveSetting(${pluginLiteral}, key, value),
+                registerSettings: (schema) => window.StremioEnhancedAPI.registerSettings(${pluginLiteral}, schema),
+                onSettingsSaved: (callback) => window.StremioEnhancedAPI.onSettingsSaved(${pluginLiteral}, callback),
                 
                 showAlert: window.StremioEnhancedAPI.showAlert,
-                showPrompt: (title, message, defaultValue) => window.StremioEnhancedAPI.showPrompt('${pluginBaseName}', title, message, defaultValue)
+                showPrompt: (title, message, defaultValue) => window.StremioEnhancedAPI.showPrompt(${pluginLiteral}, title, message, defaultValue)
             };
 
             try {
                 ${pluginContent}
             } catch (err) {
-                console.error('[ModController] Plugin crashed: ${pluginName}', err);
+                console.error('[ModController] Plugin crashed:', ${JSON.stringify(pluginName)}, err);
             }
         })();
         `;
 
         const script = document.createElement("script");
-        script.innerHTML = scopedScript;
+        script.textContent = scopedScript;
         script.id = pluginName;
         document.body.appendChild(script);
         
@@ -244,7 +245,10 @@ export const modController = {
                     if (result === 0) {
                         modController._applyUpdate(type, itemFile, updateData.newContent!, updateData.newMetaData!);
                     } else if (result === 2) {
-                        shell.openExternal(updateData.updateUrl!);
+                        try {
+                            const parsed = new URL(updateData.updateUrl!);
+                            if (parsed.protocol === "https:" || parsed.protocol === "http:") shell.openExternal(parsed.toString());
+                        } catch { /* invalid URL */ }
                     }
                 } else {
                     modController._applyUpdate(type, itemFile, updateData.newContent!, updateData.newMetaData!);

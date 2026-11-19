@@ -50,14 +50,19 @@ class ModManager {
     }
 
     public static async downloadMod(modLink: string, type: "plugin" | "theme"): Promise<string> {
+        const parsed = new URL(modLink);
+        if (parsed.protocol !== "https:") throw new Error(`Refusing non-HTTPS mod URL: ${modLink}`);
+        const expectedExt = type === "plugin" ? FILE_EXTENSIONS.PLUGIN : FILE_EXTENSIONS.THEME;
+        const filename = basename(parsed.pathname);
+        if (!filename.endsWith(expectedExt)) throw new Error(`Invalid ${type} filename: ${filename}`);
+
         this.logger.info(`Downloading ${type} from: ${modLink}`);
-        const response = await fetch(modLink);
+        const response = await fetch(parsed.toString());
         if (!response.ok) throw new Error(`Failed to download: ${response.status}`);
         
         const saveDir = type === "plugin" ? Properties.pluginsPath : Properties.themesPath;
         if (!existsSync(saveDir)) mkdirSync(saveDir, { recursive: true });
         
-        const filename = basename(new URL(modLink).pathname) || `${type}-${Date.now()}`;
         const filePath = join(saveDir, filename);
 
         const buffer = Buffer.from(await response.arrayBuffer());

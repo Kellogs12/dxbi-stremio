@@ -12,18 +12,35 @@ interface ModMetaData {
     repo: string;
 }
 
+function escHtml(value: string): string {
+    return String(value || "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]!));
+}
+
+function safeHttpsUrl(url?: string): string {
+    if (!url) return "";
+    try {
+        const parsed = new URL(url);
+        return parsed.protocol === "https:" ? parsed.toString() : "";
+    } catch {
+        return "";
+    }
+}
+
 export async function getModItemTemplate(
     metaData: ModMetaData,
     type: "Plugin" | "Theme", 
     installed: boolean
 ): Promise<string> {
     let template = TemplateCache.load(__dirname, 'marketplace-item');
+    const previewUrl = safeHttpsUrl(metaData.preview);
+    const downloadUrl = safeHttpsUrl(metaData.download);
+    const repoUrl = safeHttpsUrl(metaData.repo) || "#";
     
     // Generate logo block based on type
     let logoBlock = "";
 
     if(type === "Theme") {
-        if(!metaData.preview) {
+        if(!previewUrl) {
             // If no preview is provided for theme, use a placeholder
             logoBlock = `
         <svg class="icon-GxVbY" viewBox="0 0 24 24">
@@ -32,12 +49,12 @@ export async function getModItemTemplate(
         } else {
             // Use the preview image for theme logo
             logoBlock = `
-            <a href="${metaData.preview}" target="_blank" rel="noreferrer" style="cursor: zoom-in;">
-                <img class="logo-WrsGF" src="${metaData.preview}" alt="Theme Preview" loading="lazy">
+            <a href="${escHtml(previewUrl)}" target="_blank" rel="noreferrer" style="cursor: zoom-in;">
+                <img class="logo-WrsGF" src="${escHtml(previewUrl)}" alt="Theme Preview" loading="lazy">
             </a>`;
         }
     } else {
-        if(!metaData.preview) {
+        if(!previewUrl) {
              // If no preview is provided for plugin, use a placeholder
             logoBlock = `
             <svg class="icon-GxVbY" viewBox="0 0 512 512">
@@ -46,15 +63,15 @@ export async function getModItemTemplate(
         } else {
             // Use the preview image for plugin logo
             logoBlock = `
-            <a href="${metaData.preview}" target="_blank" rel="noreferrer" style="cursor: zoom-in;">
-                <img class="logo-WrsGF" src="${metaData.preview}" alt="Plugin Preview" loading="lazy">
+            <a href="${escHtml(previewUrl)}" target="_blank" rel="noreferrer" style="cursor: zoom-in;">
+                <img class="logo-WrsGF" src="${escHtml(previewUrl)}" alt="Plugin Preview" loading="lazy">
             </a>`;
         }
     }
 
     // For themes, attempt to fetch the file and extract version from metadata if available instead of using provided version
-    if(type === "Theme") {
-        const request = await fetch(metaData.download);
+    if(type === "Theme" && downloadUrl) {
+        const request = await fetch(downloadUrl);
         if (request.status === 200) {
             const responseText = await request.text();
             const extractedMetaData = ExtractMetaData.extractMetadataFromText(responseText) as MetaData | null;
@@ -67,14 +84,14 @@ export async function getModItemTemplate(
     const metaKeys = ['name', 'description', 'author', 'version'] as const;
     metaKeys.forEach(key => {
         const regex = new RegExp(`{{\\s*${key}\\s*}}`, 'g');
-        template = template.replace(regex, metaData[key] || '');
+        template = template.replace(regex, escHtml(metaData[key] || ''));
     });
 
     return template
-        .replace(/\{\{\s*type\s*\}\}/g, type)
+        .replace(/\{\{\s*type\s*\}\}/g, escHtml(type))
         .replace(/\{\{\s*actionbtnTitle\s*\}\}/g, installed ? "Uninstall" : "Install")
         .replace("{{ actionbtnClass }}", installed ? "uninstall-button-container-oV4Yo" : "install-button-container-yfcq5")
-        .replace("{{ download }}", metaData.download)
-        .replace("{{ repo }}", metaData.repo)
+        .replace("{{ download }}", escHtml(downloadUrl))
+        .replace("{{ repo }}", escHtml(repoUrl))
         .replace("<!-- theme/plugin preview here -->", logoBlock)
 }

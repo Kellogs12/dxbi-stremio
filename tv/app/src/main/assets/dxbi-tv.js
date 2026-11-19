@@ -194,6 +194,24 @@
     /* No streaming server runs on the TV itself (debrid streams don't need one): no nagging bar */
     [class*="board-warning-container"] { display: none !important; }
     .dxtv-toast { position: fixed; left: 50%; bottom: 48px; z-index: 2147483600; transform: translateX(-50%); padding: 14px 22px; border-radius: 10px; background: rgba(20,20,20,.94); color: #fff; font: 500 16px Inter, system-ui, sans-serif; box-shadow: 0 10px 40px rgba(0,0,0,.5); }
+    .dxtv-genre-bar { display: flex; align-items: center; gap: 10px; padding: 10px var(--dx-gutter, 3rem) 6px; overflow-x: auto; scrollbar-width: none; position: relative; z-index: 5; }
+    .dxtv-genre-bar::-webkit-scrollbar { display: none; }
+    .dxtv-genre-pill { flex: none; padding: 7px 16px; border: 1px solid rgba(255,255,255,.16); border-radius: 999px; background: rgba(20,20,26,.78); color: #d8d8e0; font: 600 13.5px Inter, system-ui, sans-serif; cursor: pointer; transition: transform .15s, background-color .15s, color .15s, border-color .15s; }
+    .dxtv-genre-pill.is-active { background: #e50914; border-color: #e50914; color: #fff; }
+    .dxtv-genre-pill.is-more { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.26); color: #fff; }
+    .dxtv-genre-pill:focus-visible { outline: 3px solid #fff !important; outline-offset: 2px; transform: scale(1.06); color: #fff; }
+    .dxtv-cat-sheet { width: min(880px, 90vw); max-height: 86vh; overflow: auto; padding: 28px 32px; border-radius: 16px; background: #141418; color: #fff; border: 1px solid rgba(255,255,255,.1); box-shadow: 0 28px 90px rgba(0,0,0,.75); }
+    .dxtv-cat-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+    .dxtv-cat-head h2 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: .02em; }
+    .dxtv-cat-modes { display: flex; gap: 8px; }
+    .dxtv-cat-mode { padding: 8px 16px; border: 1px solid rgba(255,255,255,.16); border-radius: 999px; background: rgba(255,255,255,.06); color: #ccc; font: 600 14px Inter, system-ui, sans-serif; cursor: pointer; }
+    .dxtv-cat-mode.is-on { background: #e50914; border-color: #e50914; color: #fff; }
+    .dxtv-cat-mode:focus { outline: 3px solid #fff; color: #fff; }
+    .dxtv-cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 18px; }
+    .dxtv-cat-tile { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; border: 1px solid rgba(255,255,255,.08); border-radius: 12px; background: linear-gradient(135deg, rgba(255,255,255,.08), rgba(255,255,255,.03)); color: #fff; font: 600 16px Inter, system-ui, sans-serif; cursor: pointer; text-align: left; }
+    .dxtv-cat-tile:focus { outline: 3px solid #fff; background: linear-gradient(135deg, rgba(229,9,20,.42), rgba(255,255,255,.12)); transform: scale(1.03); }
+    .dxtv-cat-tile small { color: #aaa; font-size: 13px; font-weight: 500; }
+    [data-dxtv-genre-hide] { display: none !important; }
   `;
   function ensureStyle() {
     if (document.getElementById("dxtv-style")) return;
@@ -1163,10 +1181,12 @@
       if (e.key === "ArrowLeft" && !nav.contains(active)) {
         const card = active.closest('[class*="meta-item-container"]');
         if (card && card.previousElementSibling) return;
+        const pill = active.closest(".dxtv-genre-pill");
+        if (pill && pill.previousElementSibling) return;
         const heroBtn = active.closest(".dx-hero-actions .dx-btn");
         if (heroBtn && heroBtn.previousElementSibling) return;
         const rect = active.getBoundingClientRect();
-        if (!card && !heroBtn && rect.left > 220) return;
+        if (!card && !pill && !heroBtn && rect.left > 220) return;
 
         const tab = nav.querySelector('a[class*="nav-tab-button"].selected') || nav.querySelector('a[class*="nav-tab-button"]');
         if (tab) {
@@ -1179,19 +1199,195 @@
     }, true);
   }
 
+  // ---------------------------------------------------------------------------
+  // Netflix Genre Pill Bar (Home) & Left-Sidebar Categories Full-Screen Overlay
+  // ---------------------------------------------------------------------------
+  const TV_GENRES = [
+    ["Thriller", "Suspense & Mind-Benders"],
+    ["Horror", "Chills & Supernatural"],
+    ["Comedy", "Stand-Up & Sitcoms"],
+    ["Action", "Blockbusters & Stunts"],
+    ["Sci-Fi", "Futuristic & Space"],
+    ["Anime", "Series & Films"],
+    ["Drama", "Award-Winning Stories"],
+    ["Crime", "Heists & Detectives"],
+    ["Mystery", "Whodunits & Thrillers"],
+    ["Romance", "Love & Relationships"],
+    ["Documentary", "True Stories & Nature"],
+    ["Adventure", "Quests & Journeys"],
+    ["Fantasy", "Magic & Mythic Worlds"],
+    ["Family", "Kids & All Ages"],
+    ["Animation", "Animated Hits"],
+  ];
+  let activeHomeGenre = "All";
+
+  function applyHomeGenreFilter(genre) {
+    activeHomeGenre = genre || "All";
+    const bar = document.querySelector(".dxtv-genre-bar");
+    if (bar) {
+      bar.querySelectorAll(".dxtv-genre-pill[data-genre]").forEach((b) => {
+        b.classList.toggle("is-active", b.dataset.genre === activeHomeGenre);
+      });
+    }
+    const rows = document.querySelectorAll('#app [class*="board-content-"]:not([class*="board-content-container"]) > [class*="board-row"]');
+    if (activeHomeGenre === "All") {
+      document.querySelectorAll("[data-dxtv-genre-hide]").forEach((el) => el.removeAttribute("data-dxtv-genre-hide"));
+      return;
+    }
+    const rx = new RegExp(activeHomeGenre === "Sci-Fi" ? "(sci-fi|science fiction)" : activeHomeGenre === "Anime" ? "(anime|animation)" : activeHomeGenre, "i");
+    let matchedCards = 0;
+    rows.forEach((row) => {
+      const header = (row.querySelector('[class*="header-container"]')?.textContent || "").trim();
+      const rowMatches = rx.test(header);
+      let visibleInRow = 0;
+      row.querySelectorAll('[class*="meta-item-container"]').forEach((card) => {
+        const g = card.dataset.dxGenres || card.querySelector("[data-dx-genres]")?.dataset.dxGenres || "";
+        const show = rowMatches || rx.test(g);
+        if (show) {
+          card.removeAttribute("data-dxtv-genre-hide");
+          visibleInRow++;
+          matchedCards++;
+        } else {
+          card.setAttribute("data-dxtv-genre-hide", "1");
+        }
+      });
+      if (visibleInRow > 0 || rowMatches) row.removeAttribute("data-dxtv-genre-hide");
+      else row.setAttribute("data-dxtv-genre-hide", "1");
+    });
+    if (matchedCards === 0) {
+      document.querySelectorAll("[data-dxtv-genre-hide]").forEach((el) => el.removeAttribute("data-dxtv-genre-hide"));
+      const targetGenre = activeHomeGenre === "Anime" ? "Animation" : activeHomeGenre;
+      location.hash = `#/discover/${encodeURIComponent("https://v3-cinemeta.strem.io/manifest.json")}/movie/top?genre=${encodeURIComponent(targetGenre)}`;
+    }
+  }
+
+  function openCategoriesModal(defaultMode = "movie") {
+    if (PHONE) return;
+    ensureStyle();
+    closeModal();
+    const before = document.activeElement;
+    let mode = defaultMode;
+    const el = document.createElement("div");
+    el.className = "dxtv-modal";
+    const render = () => {
+      el.innerHTML = `<div class="dxtv-cat-sheet" role="dialog" aria-label="Netflix Categories">
+        <div class="dxtv-cat-head">
+          <h2>Browse by Category</h2>
+          <div class="dxtv-cat-modes">
+            <button class="dxtv-cat-mode${mode === "movie" ? " is-on" : ""}" data-mode="movie">Movies</button>
+            <button class="dxtv-cat-mode${mode === "series" ? " is-on" : ""}" data-mode="series">Series</button>
+            <button class="dxtv-cat-mode${mode === "home" ? " is-on" : ""}" data-mode="home">Filter Home</button>
+          </div>
+        </div>
+        <div class="dxtv-cat-grid">
+          ${mode === "home" ? `<button class="dxtv-cat-tile" data-cat="All"><span>All Categories</span><small>Reset</small></button>` : ""}
+          ${TV_GENRES.map(([g, sub]) => `<button class="dxtv-cat-tile" data-cat="${esc(g)}"><span>${esc(g)}</span><small>${esc(sub)}</small></button>`).join("")}
+        </div>
+        <div class="dxtv-buttons"><button class="dxtv-btn" data-close>Close</button></div>
+      </div>`;
+      const first = el.querySelector(".dxtv-cat-tile") || el.querySelector(".dxtv-btn");
+      if (first) first.focus();
+    };
+    const dismiss = () => {
+      el.remove();
+      if (openModal && openModal.el === el) openModal = null;
+      if (before && before.isConnected) before.focus({ preventScroll: true });
+    };
+    el.addEventListener("click", (e) => {
+      if (e.target.closest("[data-close]")) { dismiss(); return; }
+      const mBtn = e.target.closest("[data-mode]");
+      if (mBtn) { mode = mBtn.dataset.mode; render(); return; }
+      const tile = e.target.closest("[data-cat]");
+      if (!tile) return;
+      const g = tile.dataset.cat;
+      dismiss();
+      if (mode === "home") {
+        if (location.hash && location.hash !== "#/" && !location.hash.startsWith("#/board")) location.hash = "#/";
+        setTimeout(() => applyHomeGenreFilter(g), 120);
+      } else {
+        const targetGenre = g === "Anime" ? "Animation" : g;
+        location.hash = `#/discover/${encodeURIComponent("https://v3-cinemeta.strem.io/manifest.json")}/${mode}/top?genre=${encodeURIComponent(targetGenre)}`;
+      }
+    });
+    document.body.append(el);
+    openModal = { el, dismiss };
+    render();
+  }
+  tv.openCategories = openCategoriesModal;
+
+  function ensureGenreUi() {
+    if (PHONE) return;
+    ensureStyle();
+    // 1. Left-sidebar Categories tab
+    const nav = document.querySelector('#app nav[class*="vertical-nav-bar"]');
+    if (nav && !nav.querySelector(".dxtv-cat-tab")) {
+      const sample = nav.querySelector('a[href="#/discover"]') || nav.querySelector('a[class*="nav-tab-button"]');
+      if (sample) {
+        const tab = document.createElement("a");
+        tab.className = `${sample.className.replace(/\bselected\b/g, "").trim()} dxtv-cat-tab`;
+        tab.tabIndex = 0;
+        tab.title = "Categories";
+        const labelCls = sample.querySelector('[class*="label"]')?.className || "label";
+        tab.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z"/></svg><div class="${esc(labelCls)}">Categories</div>`;
+        const open = (e) => { e.preventDefault(); e.stopPropagation(); openCategoriesModal("movie"); };
+        tab.addEventListener("click", open);
+        tab.addEventListener("keydown", (e) => { if (e.key === "Enter") open(e); });
+        sample.after(tab);
+      }
+    }
+
+    // 2. Top Netflix Genre Pill Bar on Home
+    const isHome = !location.hash || location.hash === "#/" || location.hash.startsWith("#/board");
+    const board = isHome && document.querySelector('#app [class*="board-content-"]:not([class*="board-content-container"])');
+    if (!board) return;
+    let bar = board.querySelector(":scope > .dxtv-genre-bar");
+    if (!bar) {
+      bar = document.createElement("div");
+      bar.className = "dxtv-genre-bar";
+      const pills = ["All", "Thriller", "Horror", "Comedy", "Action", "Sci-Fi", "Drama", "Romance", "Mystery", "Anime", "Documentary", "Crime"];
+      bar.innerHTML = pills.map((g) => `<button type="button" class="dxtv-genre-pill${g === activeHomeGenre ? " is-active" : ""}" data-genre="${esc(g)}">${esc(g)}</button>`).join("") +
+        `<button type="button" class="dxtv-genre-pill is-more" data-more="1">Categories ▾</button>`;
+      bar.addEventListener("click", (e) => {
+        if (e.target.closest("[data-more]")) { openCategoriesModal("movie"); return; }
+        const p = e.target.closest("[data-genre]");
+        if (!p) return;
+        const g = p.dataset.genre;
+        if (g !== "All" && g === activeHomeGenre) {
+          const targetGenre = g === "Anime" ? "Animation" : g;
+          location.hash = `#/discover/${encodeURIComponent("https://v3-cinemeta.strem.io/manifest.json")}/movie/top?genre=${encodeURIComponent(targetGenre)}`;
+          return;
+        }
+        applyHomeGenreFilter(g);
+      });
+    }
+    const hero = board.querySelector(":scope > .dx-hero");
+    if (hero && hero.nextElementSibling !== bar) hero.after(bar);
+    else if (!hero && board.firstElementChild !== bar) board.prepend(bar);
+  }
+
   function onRoute() {
     ensureSettingsEntry();
+    ensureGenreUi();
     if (/^#\/player\//.test(location.hash)) startHandoff();
     if (/^#\/search\?search=./.test(location.hash) && document.activeElement && document.activeElement.tagName !== "INPUT") resultsFirst();
   }
 
   window.addEventListener("hashchange", onRoute);
+  let domSyncRaf = 0;
+  const scheduleDomSync = () => {
+    if (domSyncRaf) return;
+    domSyncRaf = requestAnimationFrame(() => {
+      domSyncRaf = 0;
+      ensureSettingsEntry();
+      if (!openModal) ensureGenreUi();
+    });
+  };
   const start = () => {
     ensureStyle();
     loadPlugin();
     resumePlayback();
     onRoute();
-    new MutationObserver(ensureSettingsEntry).observe(document.body, { childList: true, subtree: true });
+    new MutationObserver(scheduleDomSync).observe(document.body, { childList: true, subtree: true });
   };
   if (document.readyState === "complete") start();
   else window.addEventListener("load", start);

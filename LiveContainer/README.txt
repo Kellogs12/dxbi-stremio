@@ -2,7 +2,7 @@
 
 This folder contains multiple ways to launch the Hank (dx.pi) iPhone app directly inside LiveContainer:
 
-1. `Hank (Signed).shortcut` or `Hank (Dxbi) (Signed).shortcut`:
+1. `Hank (Signed).shortcut`:
    - Tap this file on your iPhone (in Files or AirDrop).
    - Apple Shortcuts will prompt "Add Shortcut".
    - You can then add it directly to your Home Screen with 1 tap.

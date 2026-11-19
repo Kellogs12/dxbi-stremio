@@ -32,18 +32,14 @@ jobs:
 
       - name: Setup signing key
         run: |
-          if [ -n "${{ secrets.DXBI_TV_KEYSTORE_B64 }}" ]; then
-            echo "${{ secrets.DXBI_TV_KEYSTORE_B64 }}" | base64 -d > "$RUNNER_TEMP/hank-tv.jks"
-            echo "KEYSTORE_PASS=${{ secrets.DXBI_TV_KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
-            echo "KEY_PASS=${{ secrets.DXBI_TV_KEY_PASSWORD || secrets.DXBI_TV_KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
-            echo "KEY_ALIAS=${{ secrets.DXBI_TV_KEY_ALIAS || 'dxbi-tv' }}" >> $GITHUB_ENV
-          else
-            echo "Generating release signing keystore..."
-            keytool -genkey -v -keystore "$RUNNER_TEMP/hank-tv.jks" -alias hank-tv -keyalg RSA -keysize 2048 -validity 10000 -storepass hankpassword -keypass hankpassword -dname "CN=Hank, OU=Hank, O=Hank, L=Unknown, S=Unknown, C=US"
-            echo "KEYSTORE_PASS=hankpassword" >> $GITHUB_ENV
-            echo "KEY_PASS=hankpassword" >> $GITHUB_ENV
-            echo "KEY_ALIAS=hank-tv" >> $GITHUB_ENV
+          if [ -z "${{ secrets.DXBI_TV_KEYSTORE_B64 }}" ]; then
+            echo "DXBI_TV_KEYSTORE_B64 secret is required so updates keep the same signing key." >&2
+            exit 1
           fi
+          echo "${{ secrets.DXBI_TV_KEYSTORE_B64 }}" | base64 -d > "$RUNNER_TEMP/hank-tv.jks"
+          echo "KEYSTORE_PASS=${{ secrets.DXBI_TV_KEYSTORE_PASSWORD || 'hankpassword' }}" >> $GITHUB_ENV
+          echo "KEY_PASS=${{ secrets.DXBI_TV_KEY_PASSWORD || secrets.DXBI_TV_KEYSTORE_PASSWORD || 'hankpassword' }}" >> $GITHUB_ENV
+          echo "KEY_ALIAS=${{ secrets.DXBI_TV_KEY_ALIAS || 'hank-tv' }}" >> $GITHUB_ENV
 
       # GitHub's Ubuntu runners come with the Android SDK (ANDROID_HOME); Gradle fetches what's missing
       - name: Build APKs

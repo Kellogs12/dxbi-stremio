@@ -1,5 +1,5 @@
 import * as net from 'net';
-import { existsSync, rmSync } from 'fs';
+import { existsSync, rmSync, statSync } from 'fs';
 import { spawn, type ChildProcess } from 'child_process';
 import { randomBytes } from 'crypto';
 import { getLogger } from '../utils/logger';
@@ -189,7 +189,8 @@ export const externalPlayerController = {
             if (customPath) {
                 const base = basename(customPath).toLowerCase();
                 const allowed = player === 'mpv' ? ['mpv', 'mpv.exe', 'mpv.app'] : ['vlc', 'vlc.exe', 'vlc.app'];
-                if (!allowed.some(name => base === name || base.startsWith(name))) {
+                const exists = existsSync(customPath) && (statSync(customPath).isFile() || base.endsWith('.app'));
+                if (!allowed.includes(base) || !exists) {
                     logger.error(`Refusing unapproved custom player path: ${customPath}`);
                     return { success: false, error: `Invalid custom executable for ${player}.` };
                 }

@@ -90,12 +90,11 @@ async function createWindow() {
     mainWindow = new BrowserWindow({
         webPreferences: {
             preload: join(__dirname, "//preload/index.js"),
-            // Security Note: These settings are required for the plugin/theme system
-            // to work properly. The app loads web.stremio.com and needs to:
-            // 1. Make cross-origin requests to local streaming server (webSecurity: false)
-            // 2. Access Node.js APIs for file operations (nodeIntegration: true)
+            // webSecurity: false is required so web.stremio.com can reach 127.0.0.1 streaming/downloads
+            // servers and third-party Stremio addons that lack CORS headers; contextIsolation + SafeLinks
+            // protect the main process, and nodeIntegration stays off in the renderer.
             webSecurity: false,
-            nodeIntegration: true,
+            nodeIntegration: false,
             contextIsolation: true,
             // Additional security hardening/performance settings
             allowRunningInsecureContent: false,

@@ -18,6 +18,7 @@ import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.io.RandomAccessFile
+import java.security.SecureRandom
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 
@@ -56,6 +57,7 @@ object TorrentEngine {
 
     private var session: SessionManager? = null
     private var server: Server? = null
+    private val serverToken = ByteArray(16).also { SecureRandom().nextBytes(it) }.joinToString("") { "%02x".format(it) }
     private lateinit var dir: File
     private val worker = Executors.newSingleThreadExecutor()
 
@@ -105,19 +107,19 @@ object TorrentEngine {
         ensure(context)
         val hash = infoHash.lowercase()
         val current = active
-        if (current == null || current.hash != hash) {
+        if (current == null || current.hash != hash || (fileIdx >= 0 && current.file != fileIdx)) {
             close()
             opening = hash
             failure = null
             worker.execute { start(hash, fileIdx, trackers, nameHint) }
         }
-        return "http://127.0.0.1:${server!!.listeningPort}/t/$hash"
+        return "http://127.0.0.1:${server!!.listeningPort}/$serverToken/t/$hash"
     }
 
     private fun start(hash: String, fileIdx: Int, trackers: List<String>, nameHint: String) {
         val s = session ?: return
         // being downloaded already: played from that copy (which stays when playback stops)
-        kept[hash]?.let { k ->
+        kept[hash]?.takeIf { fileIdx < 0 || it.file == fileIdx }?.let { k ->
             if (k.paused) { k.handle.resume(); k.paused = false }
             if (opening == hash) active = k
             return
@@ -203,7 +205,7 @@ object TorrentEngine {
     fun resolveDownload(context: Context, uri: Uri, dir: File): Uri {
         ensure(context)
         val hash = uri.authority?.lowercase()?.takeIf { it.matches(Regex("[0-9a-f]{40}")) } ?: throw IOException("Not a torrent")
-        val address = Uri.parse("http://127.0.0.1:${server!!.listeningPort}/k/$hash")
+        val address = Uri.parse("http://127.0.0.1:${server!!.listeningPort}/$serverToken/k/$hash")
         synchronized(keptLocks.getOrPut(hash) { Any() }) {
             kept[hash]?.let { k ->
                 if (k.paused) { k.handle.resume(); k.paused = false }
@@ -350,11 +352,14 @@ object TorrentEngine {
 
     private class Server : NanoHTTPD("127.0.0.1", 0) {
         override fun serve(session: IHTTPSession): Response {
-            if (session.uri.startsWith("/k/")) {
-                val a = kept[session.uri.removePrefix("/k/").lowercase()] ?: return newFixedLengthResponse(Response.Status.NOT_FOUND, MIME_PLAINTEXT, "not downloading")
+            val prefix = "/$serverToken"
+            if (!session.uri.startsWith("$prefix/")) return newFixedLengthResponse(Response.Status.NOT_FOUND, MIME_PLAINTEXT, "not found")
+            val path = session.uri.removePrefix(prefix)
+            if (path.startsWith("/k/")) {
+                val a = kept[path.removePrefix("/k/").lowercase()] ?: return newFixedLengthResponse(Response.Status.NOT_FOUND, MIME_PLAINTEXT, "not downloading")
                 return send(a, session)
             }
-            val hash = session.uri.removePrefix("/t/").lowercase()
+            val hash = path.removePrefix("/t/").lowercase()
             // the torrent's details can take a while to arrive from peers: the player's first request waits
             val until = System.currentTimeMillis() + (METADATA_TIMEOUT_S + 5) * 1000L
             var a = active

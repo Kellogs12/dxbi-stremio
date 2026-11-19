@@ -21,8 +21,14 @@ object ServerFinder {
     private const val CONNECT_MS = 350
     private const val READ_MS = 1500
 
+    private val waiters = mutableListOf<(List<String>) -> Unit>()
+
     /** Calls [done] (on a background thread) with the servers' addresses, e.g. http://192.168.0.12:11470/ */
     fun find(done: (List<String>) -> Unit) {
+        synchronized(waiters) {
+            waiters.add(done)
+            if (waiters.size > 1) return
+        }
         Thread {
             val hosts = LinkedHashSet<String>()
             hosts.add("127.0.0.1") // Stremio's own app on this TV, if it's running
@@ -37,7 +43,9 @@ object ServerFinder {
             if ("127.0.0.1" in found) found.removeAll(ownAddresses())
             // This TV first, then in address order
             val sorted = found.sortedWith(compareBy({ it != "127.0.0.1" }, { it.substringAfterLast('.').toIntOrNull() ?: 0 }))
-            done(sorted.map { "http://$it:$PORT/" })
+            val urls = sorted.map { "http://$it:$PORT/" }
+            val callbacks = synchronized(waiters) { waiters.toList().also { waiters.clear() } }
+            for (cb in callbacks) cb(urls)
         }.start()
     }
 

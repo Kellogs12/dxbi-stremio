@@ -1,0 +1,140 @@
+name: Upstream Sync
+
+# Checks notdxbi/dxbi-stremio for new releases every 30 minutes. When a new tag is published,
+# merges it into Kellogs12/dxbi-stremio main, preserves Hank's branding and fork features,
+# runs the test suite, and publishes a matching Hank release so all build workflows trigger.
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Specific upstream tag to sync (leave empty for latest release)'
+        required: false
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check upstream latest release
+        id: upstream
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          if [ -n "$INPUT_TAG" ]; then
+            gh release view "$INPUT_TAG" -R notdxbi/dxbi-stremio --json tagName,body > upstream_release.json
+          else
+            gh release view -R notdxbi/dxbi-stremio --json tagName,body > upstream_release.json
+          fi
+          TAG=$(jq -r '.tagName' upstream_release.json)
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "Already synced to $TAG."
+            echo "needed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "New upstream release found: $TAG"
+            echo "needed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Merge upstream tag and preserve Hank identity
+        if: steps.upstream.outputs.needed == 'true'
+        id: merge
+        env:
+          TAG: ${{ steps.upstream.outputs.tag }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "hank-sync-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git remote add upstream https://github.com/notdxbi/dxbi-stremio.git 2>/dev/null || true
+          git fetch upstream "refs/tags/$TAG:refs/tags/upstream-$TAG" --no-tags
+
+          set +e
+          git merge --no-commit --no-ff "refs/tags/upstream-$TAG"
+          MERGE_RC=$?
+          set -e
+
+          if [ "$MERGE_RC" -ne 0 ]; then
+            # Keep fork-owned files if they conflict, then check if any code conflicts remain.
+            FORK_OWNED=(
+              "README.md"
+              "install.sh"
+              "install.ps1"
+              ".github/workflows/tv.yml"
+              ".github/workflows/native-tv.yml"
+              ".github/workflows/discord-release.yml"
+              ".github/workflows/mpv-windows.yml"
+            )
+            for f in "${FORK_OWNED[@]}"; do
+              if git diff --name-only --diff-filter=U | grep -qx "$f"; then
+                git checkout --ours -- "$f"
+                git add "$f"
+              fi
+            done
+
+            REMAINING=$(git diff --name-only --diff-filter=U)
+            if [ -n "$REMAINING" ]; then
+              echo "Unresolved merge conflicts in:"
+              echo "$REMAINING"
+              git merge --abort
+              TITLE="Upstream sync conflict for $TAG"
+              OPEN=$(gh issue list -R "$GITHUB_REPOSITORY" --state open --search "\"$TITLE\" in:title" --json number --jq 'length')
+              if [ "$OPEN" = "0" ]; then
+                BODY=$(printf "Automatic merge of \`notdxbi/dxbi-stremio\` \`%s\` hit conflicts in:\n\n\`\`\`\n%s\n\`\`\`\n\nResolve manually and run \`node tools/preserve-hank.mjs\`." "$TAG" "$REMAINING")
+                gh issue create -R "$GITHUB_REPOSITORY" --title "$TITLE" --body "$BODY"
+              fi
+              echo "merged=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+
+          node tools/preserve-hank.mjs
+          git add -A
+          git commit -m "chore(sync): merge upstream $TAG into Hank"
+          echo "merged=true" >> "$GITHUB_OUTPUT"
+
+      - name: Run Hank verification suite
+        if: steps.upstream.outputs.needed == 'true' && steps.merge.outputs.merged == 'true'
+        run: |
+          node tools/integrity-test.mjs
+          node tools/engine-test.mjs
+          node tools/profile-sync/test.mjs
+
+      - name: Push main and publish matching Hank release
+        if: steps.upstream.outputs.needed == 'true' && steps.merge.outputs.merged == 'true'
+        env:
+          TAG: ${{ steps.upstream.outputs.tag }}
+          GH_TOKEN: ${{ secrets.SYNC_PAT || secrets.GITHUB_TOKEN }}
+          HAS_PAT: ${{ secrets.SYNC_PAT != '' }}
+        run: |
+          if [ "$HAS_PAT" != "true" ]; then
+            echo "::warning::SYNC_PAT secret is not set. Releases created with GITHUB_TOKEN will not trigger downstream release build workflows."
+          else
+            git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          fi
+
+          git push origin main
+          git tag "$TAG"
+          git push origin "$TAG"
+
+          jq -r '.body // ""' upstream_release.json \
+            | sed 's|notdxbi/dxbi-stremio|Kellogs12/dxbi-stremio|g; s|dxbi-Setup-|hank-Setup-|g; s|dxbi-mac-|hank-mac-|g; s|dxbi-linux-|hank-linux-|g; s|dxbi-tv\.apk|hank-tv.apk|g; s|dxbi-mobile\.apk|hank-mobile.apk|g; s|dxbi\.ipa|hank.ipa|g; s|\bdx\.bi\b|Hank|g' \
+            > release_notes.md
+
+          gh release create "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "Hank ${TAG#v}" \
+            --notes-file release_notes.md

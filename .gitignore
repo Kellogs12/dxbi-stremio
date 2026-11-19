@@ -13,4 +13,7 @@ tools/prev/
 
 # Compiled TV and WebOS packages
 webos/*.ipk
+webos/service/dxbi.plugin.js
+webos/service/dxbi.theme.css
+webos/service/hank-webos.js
 *.apk

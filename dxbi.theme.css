@@ -4876,15 +4876,34 @@ html.dx-tv {
     z-index: 3;
 }
 
-/* TV: Netflix-style 1-line titles visible beneath each row poster */
+/* TV: Netflix-style 1-line titles and genre sub-labels visible beneath each row poster */
 .dx-tv #app [class*="board-content-"]:not([class*="board-content-container"]) [class*="meta-row"] [class*="meta-item-container"] [class*="title-bar-container"],
 .dx-tv #app [class*="search-content"] [class*="meta-row"] [class*="meta-item-container"] [class*="title-bar-container"] {
     display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+}
+
+.dx-tv #app [class*="meta-item-container"] [class*="title-bar-container"][data-dx-genres]::after {
+    content: attr(data-dx-genres);
+    display: block;
+    max-width: 100%;
+    margin-top: 0.12rem;
+    font-size: 0.72rem;
+    font-weight: 400;
+    color: var(--dx-text-3);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .dx-tv #app [class*="meta-item-container"]:focus-within [class*="title-bar-container"] [class*="title-label"] {
     color: #fff !important;
     font-weight: 600;
+}
+
+.dx-tv #app [class*="meta-item-container"]:focus-within [class*="title-bar-container"][data-dx-genres]::after {
+    color: var(--dx-accent) !important;
 }
 
 /* TV: Single Netflix spotlight billboard (prevent duplicate hero or inactive slide bleed) */
