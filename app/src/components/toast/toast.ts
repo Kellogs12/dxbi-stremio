@@ -1,8 +1,5 @@
 import TemplateCache from "../../utils/templateCache";
-
-function escHtml(value: string): string {
-    return String(value || "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]!));
-}
+import Helpers from "../../utils/Helpers";
 
 export async function getToastTemplate(id: string, title: string, message: string, status: "success" | "fail" | "info"): Promise<string> {
     let template = TemplateCache.load(__dirname, 'toast');
@@ -21,8 +18,8 @@ export async function getToastTemplate(id: string, title: string, message: strin
     }
     
     return template
-        .replace("{{ id }}", escHtml(id))
-        .replace("{{ title }}", escHtml(title))
-        .replace("{{ message }}", escHtml(message))
+        .replace("{{ id }}", Helpers.escHtml(id))
+        .replace("{{ title }}", Helpers.escHtml(title))
+        .replace("{{ message }}", Helpers.escHtml(message))
         .replace("{{ status }}", toastStatus);
 }

@@ -268,11 +268,13 @@
     if (openModal) openModal.dismiss();
   }
 
+  const clearToasts = () => document.querySelectorAll(".dxtv-toast").forEach((n) => n.remove());
+
   function toast(text, ms = 4500) {
     // Behind the phone app's own screens the page can't be seen: the app shows it
     if (window.__dxbiEngine && bridge.toast) { bridge.toast(TOKEN, String(text)); return; }
     ensureStyle();
-    document.querySelectorAll(".dxtv-toast").forEach((n) => n.remove());
+    clearToasts();
     const el = document.createElement("div");
     el.className = "dxtv-toast";
     el.textContent = text;
@@ -314,7 +316,7 @@
     for (;;) {
       toast("Looking for Hank or Stremio on your network…", 6000);
       const urls = await scanForServers();
-      document.querySelectorAll(".dxtv-toast").forEach((n) => n.remove());
+      clearToasts();
       if (!urls.length) {
         const again = await dialog({
           title: "No streaming server found",
@@ -351,10 +353,10 @@
     toast("Sending…", 8000);
     try {
       const code = await dx.report.send(r.value || "");
-      document.querySelectorAll(".dxtv-toast").forEach((n) => n.remove());
+      clearToasts();
       await dialog({ title: "Report sent", message: `Thanks! Your report code is ${code}.\nPost it in Hank's Discord (#bug-reports) so it can be matched to you.`, buttons: ["OK"] });
     } catch (err) {
-      document.querySelectorAll(".dxtv-toast").forEach((n) => n.remove());
+      clearToasts();
       await dialog({ title: "Couldn't send the report", message: (err && err.message) || "Try again in a moment.", buttons: ["OK"] });
     }
   };
@@ -1317,11 +1319,16 @@
 
   function ensureGenreUi() {
     if (PHONE) return;
+    const isHome = !location.hash || location.hash === "#/" || location.hash.startsWith("#/board");
+    const hasTab = !!document.querySelector(".dxtv-cat-tab");
+    const existingBar = isHome ? document.querySelector(".dxtv-genre-bar") : null;
+    if (hasTab && (!isHome || (existingBar && (!existingBar.previousElementSibling || existingBar.previousElementSibling.classList.contains("dx-hero"))))) return;
+
     ensureStyle();
     // 1. Left-sidebar Categories tab
-    const nav = document.querySelector('#app nav[class*="vertical-nav-bar"]');
-    if (nav && !nav.querySelector(".dxtv-cat-tab")) {
-      const sample = nav.querySelector('a[href="#/discover"]') || nav.querySelector('a[class*="nav-tab-button"]');
+    if (!hasTab) {
+      const nav = document.querySelector('#app nav[class*="vertical-nav-bar"]');
+      const sample = nav && (nav.querySelector('a[href="#/discover"]') || nav.querySelector('a[class*="nav-tab-button"]'));
       if (sample) {
         const tab = document.createElement("a");
         tab.className = `${sample.className.replace(/\bselected\b/g, "").trim()} dxtv-cat-tab`;
@@ -1337,7 +1344,6 @@
     }
 
     // 2. Top Netflix Genre Pill Bar on Home
-    const isHome = !location.hash || location.hash === "#/" || location.hash.startsWith("#/board");
     const board = isHome && document.querySelector('#app [class*="board-content-"]:not([class*="board-content-container"])');
     if (!board) return;
     let bar = board.querySelector(":scope > .dxtv-genre-bar");

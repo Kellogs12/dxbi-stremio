@@ -1,6 +1,7 @@
 import { MetaData } from '../../interfaces/MetaData';
 import TemplateCache from '../../utils/templateCache';
 import ExtractMetaData from '../../utils/ExtractMetaData';
+import Helpers from '../../utils/Helpers';
 
 interface ModMetaData {
     name: string;
@@ -12,9 +13,7 @@ interface ModMetaData {
     repo: string;
 }
 
-function escHtml(value: string): string {
-    return String(value || "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]!));
-}
+const escHtml = Helpers.escHtml;
 
 function safeHttpsUrl(url?: string): string {
     if (!url) return "";

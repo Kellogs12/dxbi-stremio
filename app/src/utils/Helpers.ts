@@ -27,6 +27,10 @@ class Helpers {
         }
     }
     
+    public static escHtml(value: string): string {
+        return String(value || "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]!));
+    }
+
     public static waitForElm(selector: string, timeout: number = TIMEOUTS.ELEMENT_WAIT): Promise<Element> {
         return new Promise((resolve, reject) => {
             const existingElement = document.querySelector(selector);
@@ -54,68 +58,6 @@ class Helpers {
         });
     }
 
-    public static waitForElmByXPath(xpath: string, timeout: number = TIMEOUTS.ELEMENT_WAIT): Promise<Node> {
-        return new Promise((resolve, reject) => {
-            const evaluateXPath = (): Node | null => {
-                const result = document.evaluate(
-                    xpath, 
-                    document, 
-                    null, 
-                    XPathResult.FIRST_ORDERED_NODE_TYPE, 
-                    null
-                );
-                return result.singleNodeValue;
-            };
-    
-            const existingElement = evaluateXPath();
-            if (existingElement) {
-                return resolve(existingElement);
-            }
-            
-            const observer = new MutationObserver(() => {
-                const element = evaluateXPath();
-                if (element) {
-                    observer.disconnect();
-                    resolve(element);
-                }
-            });
-    
-            observer.observe(document.body, {
-                childList: true,
-                subtree: true
-            });
-    
-            setTimeout(() => {
-                observer.disconnect();
-                reject(new Error(`Timeout waiting for element with XPath: ${xpath}`));
-            }, timeout);
-        });
-    }    
-
-    public static waitForTitleChange(timeout: number = TIMEOUTS.ELEMENT_WAIT): Promise<string> {
-        return new Promise((resolve, reject) => {
-            const headElement = document.querySelector('head');
-            if (!headElement) {
-                return reject(new Error('Head element not found'));
-            }
-
-            const observer = new MutationObserver(() => {
-                observer.disconnect();
-                resolve(document.title);
-            });
-            
-            observer.observe(headElement, {
-                subtree: true,
-                childList: true,
-            });
-            
-            setTimeout(() => {
-                observer.disconnect();
-                reject(new Error('Timeout waiting for document.title to change'));
-            }, timeout);
-        });
-    }
-
     /**
      * Patches React DOM methods in the PAGE context to prevent
      * crashes when the browser modifies DOM nodes during audio track switches.
@@ -130,8 +72,6 @@ class Helpers {
         script.textContent = `
             if (!window._patchedReactDomPage) {
                 var originalRemoveChild = Node.prototype.removeChild;
-                var originalInsertBefore = Node.prototype.insertBefore;
-                var originalReplaceChild = Node.prototype.replaceChild;
 
                 var isInPlayer = function() {
                     return location.href.includes('#/player');
@@ -240,16 +180,6 @@ class Helpers {
                 reject(err);
             }
         });
-    }
-
-    public static getElementByXpath(path: string): Node | null {
-        return document.evaluate(
-            path, 
-            document, 
-            null, 
-            XPathResult.FIRST_ORDERED_NODE_TYPE, 
-            null
-        ).singleNodeValue;
     }
 
     public static getFileNameFromUrl(url: string): string {
