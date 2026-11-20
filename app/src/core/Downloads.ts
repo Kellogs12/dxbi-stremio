@@ -648,16 +648,19 @@ class DownloadsImpl {
             if (start > end || start >= size) { res.writeHead(416, { "Content-Range": `bytes */${size}` }).end(); return; }
             res.writeHead(206, { ...headers, "Content-Range": `bytes ${start}-${end}/${size}`, "Content-Length": end - start + 1 });
             if (req.method === "HEAD") { res.end(); return; }
-            const stream = createReadStream(file, { start, end });
-            res.on("close", () => stream.destroy());
-            stream.pipe(res);
+            this.pipeFile(file, { start, end }, res);
         } else {
             res.writeHead(200, { ...headers, "Content-Length": size });
             if (req.method === "HEAD") { res.end(); return; }
-            const stream = createReadStream(file);
-            res.on("close", () => stream.destroy());
-            stream.pipe(res);
+            this.pipeFile(file, undefined, res);
         }
+    }
+
+    private pipeFile(file: string, opts: { start: number; end: number } | undefined, res: ServerResponse): void {
+        const stream = createReadStream(file, opts);
+        stream.on("error", () => { if (!res.destroyed) res.destroy(); });
+        res.on("close", () => stream.destroy());
+        stream.pipe(res);
     }
 }
 

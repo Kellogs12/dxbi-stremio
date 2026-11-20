@@ -1,6 +1,6 @@
 {
   "name": "com.kellogs12.hank.tv.server",
-  "version": "2.35.1",
+  "version": "2.37.1",
   "description": "Hank webOS TV background service",
   "main": "launch.js",
   "dependencies": {}

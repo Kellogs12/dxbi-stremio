@@ -87,8 +87,6 @@ export const IPC_CHANNELS = {
     EXTERNAL_PLAYER_CLOSED: 'external-player-closed',
     SET_TRANSPARENCY: 'set-transparency',
     GET_TRANSPARENCY_STATUS: 'get-transparency-status',
-    UPDATE_CHECK_STARTUP: 'update-check-on-startup',
-    UPDATE_CHECK_USER: 'update-check-userrequest',
     FULLSCREEN_CHANGED: 'fullscreen-changed',
     GET_GPU_RENDERER: 'get-gpu-renderer',
     DEVICE_UTC_OFFSET: 'dxbi-device-utc-offset',
@@ -195,7 +193,5 @@ export const ENHANCED_PLUGINS_API = {
     REGISTER_SETTINGS: 'register-plugin-settings',
     GET_REGISTERED_SETTINGS: 'get-registered-schema',
     CLEAR_REGISTERED_SETTINGS: 'clear-registered-schema',
-    ON_SETTINGS_SAVED: "on-plugin-settings-saved",
-    SHOW_ALERT: 'show-alert',
-    SHOW_PROMPT: 'show-prompt'
+    ON_SETTINGS_SAVED: "on-plugin-settings-saved"
 } as const;

@@ -28,6 +28,12 @@ jobs:
         with:
           node-version: 22
 
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
       - name: Check upstream latest release
         id: upstream
         env:
@@ -109,9 +115,16 @@ jobs:
       - name: Run Hank verification suite
         if: steps.upstream.outputs.needed == 'true' && steps.merge.outputs.merged == 'true'
         run: |
-          node tools/integrity-test.mjs
-          node tools/engine-test.mjs
+          npm --prefix app ci
+          npm --prefix app run dist
+          for t in tools/*-test.mjs; do
+            case "$t" in
+              *external-player-test.mjs|*mpv-test.mjs|*smoke-test.mjs) continue ;;
+            esac
+            node "$t"
+          done
           node tools/profile-sync/test.mjs
+          ./tv/gradlew -p tv testTvDebugUnitTest assembleTvDebug --no-daemon
 
       - name: Push main and publish matching Hank release
         if: steps.upstream.outputs.needed == 'true' && steps.merge.outputs.merged == 'true'

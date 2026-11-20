@@ -12,9 +12,16 @@ import Helpers from "../utils/Helpers";
 class ModManager {
     private static logger = getLogger("ModManager");
 
+    private static safeModPath(type: "plugin" | "theme", fileName: string): string | null {
+        const trimmed = String(fileName || "").trim();
+        const base = basename(trimmed);
+        if (!base || base === "." || base === ".." || base !== trimmed) return null;
+        return join(type === "plugin" ? Properties.pluginsPath : Properties.themesPath, base);
+    }
+
     public static getPluginContent(pluginName: string): string | null {
-        const pluginPath = join(Properties.pluginsPath, pluginName);
-        if (!existsSync(pluginPath)) return null;
+        const pluginPath = this.safeModPath("plugin", pluginName);
+        if (!pluginPath || !existsSync(pluginPath)) return null;
         return readFileSync(pluginPath, "utf-8");
     }
 
@@ -73,15 +80,16 @@ class ModManager {
     }
 
     public static deleteModFile(fileName: string, type: "plugin" | "theme"): void {
-        const targetPath = join(type === "plugin" ? Properties.pluginsPath : Properties.themesPath, fileName);
-        if (existsSync(targetPath)) {
+        const targetPath = this.safeModPath(type, fileName);
+        if (targetPath && existsSync(targetPath)) {
             unlinkSync(targetPath);
             this.logger.info(`Deleted ${type} file: ${fileName}`);
         }
     }
 
     public static saveModFile(fileName: string, type: "plugin" | "theme", content: string): void {
-        const targetPath = join(type === "plugin" ? Properties.pluginsPath : Properties.themesPath, fileName);
+        const targetPath = this.safeModPath(type, fileName);
+        if (!targetPath) throw new Error(`Invalid ${type} filename: ${fileName}`);
         writeFileSync(targetPath, content, 'utf-8');
     }
 
@@ -94,13 +102,19 @@ class ModManager {
         updateUrl?: string;
     } | null> {
         const type = itemFile.endsWith(FILE_EXTENSIONS.THEME) ? "theme" : "plugin";
-        const itemPath = join(type === "theme" ? Properties.themesPath : Properties.pluginsPath, itemFile);
+        const itemPath = this.safeModPath(type, itemFile);
+        if (!itemPath) return null;
         
         const installedMetaData = ExtractMetaData.extractMetadataFromFile(itemPath) as MetaData | null;
         if (!installedMetaData?.updateUrl || installedMetaData.updateUrl === "none") return null;
 
         try {
-            const request = await fetch(installedMetaData.updateUrl);
+            const parsedUpdateUrl = new URL(installedMetaData.updateUrl);
+            if (parsedUpdateUrl.protocol !== "https:") {
+                this.logger.warn(`Refusing non-HTTPS updateUrl for ${itemFile}: ${installedMetaData.updateUrl}`);
+                return null;
+            }
+            const request = await fetch(parsedUpdateUrl.toString());
             if (request.status !== 200) return null;
 
             const responseText = await request.text();

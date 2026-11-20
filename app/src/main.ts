@@ -16,9 +16,7 @@ import Helpers from "./utils/Helpers";
 import { keepOnStremio } from "./utils/SafeLinks";
 import StremioService from "./utils/StremioService";
 import { setupPluginSettingsAPI } from "./controllers/api/SettingsApiController";
-import { setupPluginAlertAPI } from "./controllers/api/AlertApiController";
 import { setupWindowControls } from "./controllers/windowController";
-import { setupUpdater } from "./controllers/updaterController";
 import { setupWindowTransparency } from "./controllers/transparencyController";
 import { gpuController } from "./controllers/gpuController";
 import DeviceClock from "./core/DeviceClock";
@@ -235,12 +233,11 @@ app.on("ready", async () => {
     
     // setup IPC and create window
     setupPluginSettingsAPI();
-    setupPluginAlertAPI();
+    ipcMain.handle(IPC_CHANNELS.SHOW_ALERT, (_, alertType, title, message, buttons) => Helpers.showAlert(alertType, title, message, buttons));
     createWindow();
     MiniPlayer.setup(() => mainWindow);
     if(transparencyEnabled) setupWindowControls(nativeResizeEnabled);
     if(mpvEnabled && mainWindow) MpvShell.setup(mainWindow);
-    setupUpdater();
     setupAutoUpdate(() => mainWindow);
     setupWindowTransparency(transparencyFlagPath, transparencyEnabled);
     gpuController.initIPC(userDataPath);

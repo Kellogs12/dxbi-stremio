@@ -154,7 +154,7 @@ class Helpers {
                                         dispatch: activeDispatch
                                     };
 
-                                    var result = eval(\`${js.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`);
+                                    var result = eval(${JSON.stringify(js)});
                                 
                                     if (result instanceof Promise) {
                                         result.then((awaitedResult) => {

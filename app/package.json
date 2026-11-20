@@ -25,7 +25,6 @@
 	"author": "Hank",
 	"license": "GPL-3.0-or-later",
 	"devDependencies": {
-		"@types/unzipper": "^0.10.11",
 		"electron": "^41.1.0",
 		"electron-builder": "^26.4.0",
 		"typescript": "^5.7.2"
@@ -36,8 +35,6 @@
 		"electron-updater": "^6.6.2",
 		"koffi": "3.3.3",
 		"marked": "^15.0.7",
-		"p-limit": "^7.2.0",
-		"unzipper": "^0.12.3",
 		"winston": "^3.11.0"
 	},
 	"build": {

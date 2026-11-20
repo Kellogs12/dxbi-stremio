@@ -460,10 +460,27 @@
   };
   tv.saveSetting = (key, value) => api.saveSetting(PLUGIN.replace(/\.plugin\.js$/, ""), key, value);
 
+  // Stremio keeps earlier routes mounted in DOM; pick the active visible route first.
+  function activeRoute() {
+    const routes = document.querySelectorAll('#app [class*="route-container"]');
+    for (let i = routes.length - 1; i >= 0; i--) {
+      if (routes[i].getClientRects().length) return routes[i];
+    }
+    return document.getElementById("app") || document.body;
+  }
+
+  function activeNav() {
+    return activeRoute().querySelector('nav[class*="vertical-nav-bar"]')
+      || document.querySelector('#app nav[class*="vertical-nav-bar"]');
+  }
+
   function ensureSettingsEntry() {
     if (!/^#\/settings/.test(location.hash)) return;
+    const ar = activeRoute();
     // also in Settings' own list (General, Interface… Shortcuts), where people look for it
-    const shortcuts = document.querySelector('[class*="settings-container"] [data-section="shortcuts"], [class*="settings-content"] [data-section="shortcuts"]');
+    const shortcuts = ar.querySelector('[class*="settings-container"] [data-section="shortcuts"], [class*="settings-content"] [data-section="shortcuts"]')
+      || [...ar.querySelectorAll('[class*="settings-content"] [class*="side-menu"] > *, [class*="settings-container"] [class*="side-menu"] > *, [class*="settings-content"] [class*="menu-container"] > *')]
+           .find((el) => /shortcuts/i.test((el.textContent || "").trim()));
     if (shortcuts && !shortcuts.parentElement.querySelector(".dxtv-side")) {
       const side = document.createElement("div");
       side.className = `${shortcuts.className} dxtv-side`;
@@ -474,7 +491,9 @@
       side.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); settingsSheet(); } });
       shortcuts.after(side);
     }
-    const content = document.querySelector('[class*="settings-content"] [class*="sections-container"]');
+    const content = ar.querySelector('[class*="settings-content"] [class*="sections-container"]')
+      || ar.querySelector('[class*="settings-content"] [class*="section-container"]')?.parentElement
+      || ar.querySelector('[class*="settings-content"] > div:last-child');
     if (!content || content.querySelector(".dxtv-settings-entry")) return;
     ensureStyle();
     const entry = document.createElement("button");
@@ -1056,7 +1075,20 @@
       return true;
     }
     const route = (location.hash || "#/").replace(/^#\/?/, "").split(/[/?]/)[0];
-    if (!route || route === "board") return false;
+    if (!route || route === "board") {
+      // Netflix Fire TV behavior: Back from Home rows/billboard jumps to the left rail first
+      const nav = !PHONE && activeNav();
+      const active = document.activeElement;
+      if (nav && (!active || !nav.contains(active))) {
+        const tab = nav.querySelector('a[class*="nav-tab-button"].selected') || nav.querySelector('a[class*="nav-tab-button"]');
+        if (tab) {
+          if (active && active !== document.body) lastContentFocus = active;
+          tab.focus({ preventScroll: true });
+          return true;
+        }
+      }
+      return false;
+    }
     history.back();
     return true;
   };
@@ -1158,6 +1190,8 @@
       const t = e.target;
       if (t && t.nodeType === 1 && !t.closest('nav[class*="vertical-nav-bar"]') && !t.closest(".dxtv-modal")) {
         lastContentFocus = t;
+        const row = t.closest('[class*="board-row"]');
+        if (row) row.scrollIntoView({ block: "nearest", behavior: "instant" });
       }
     }, true);
 
@@ -1165,13 +1199,14 @@
       if (openModal || document.querySelector(".dxtv-modal, .dxe-modal")) return;
       const active = document.activeElement;
       if (!active || (typable(active) && active.dataset.dxtvTyping)) return;
-      const nav = document.querySelector('#app nav[class*="vertical-nav-bar"]');
+      const nav = activeNav();
       if (!nav) return;
 
       if (e.key === "ArrowRight" && nav.contains(active)) {
-        const target = (lastContentFocus && lastContentFocus.isConnected && lastContentFocus.offsetParent)
+        const ar = activeRoute();
+        const target = (lastContentFocus && lastContentFocus.isConnected && lastContentFocus.offsetParent && ar.contains(lastContentFocus))
           ? lastContentFocus
-          : document.querySelector('.dx-hero .dx-btn, #app [class*="meta-item-container"] a[href], #app [class*="meta-item-container"][tabindex]');
+          : ar.querySelector('.dx-hero .dx-btn, [class*="meta-item-container"] a[href], [class*="meta-item-container"][tabindex]');
         if (target) {
           e.preventDefault();
           e.stopImmediatePropagation();
@@ -1319,16 +1354,18 @@
 
   function ensureGenreUi() {
     if (PHONE) return;
+    const ar = activeRoute();
+    const nav = activeNav();
     const isHome = !location.hash || location.hash === "#/" || location.hash.startsWith("#/board");
-    const hasTab = !!document.querySelector(".dxtv-cat-tab");
-    const existingBar = isHome ? document.querySelector(".dxtv-genre-bar") : null;
-    if (hasTab && (!isHome || (existingBar && (!existingBar.previousElementSibling || existingBar.previousElementSibling.classList.contains("dx-hero"))))) return;
+    const hasTab = !nav || !!nav.querySelector(".dxtv-cat-tab");
+    const board = isHome && ar.querySelector('[class*="board-content-"]:not([class*="board-content-container"])');
+    const existingBar = board ? board.querySelector(":scope > .dxtv-genre-bar") : null;
+    if (hasTab && (!board || (existingBar && (!existingBar.previousElementSibling || existingBar.previousElementSibling.classList.contains("dx-hero"))))) return;
 
     ensureStyle();
     // 1. Left-sidebar Categories tab
     if (!hasTab) {
-      const nav = document.querySelector('#app nav[class*="vertical-nav-bar"]');
-      const sample = nav && (nav.querySelector('a[href="#/discover"]') || nav.querySelector('a[class*="nav-tab-button"]'));
+      const sample = nav.querySelector('a[href="#/discover"]') || nav.querySelector('a[class*="nav-tab-button"]');
       if (sample) {
         const tab = document.createElement("a");
         tab.className = `${sample.className.replace(/\bselected\b/g, "").trim()} dxtv-cat-tab`;
@@ -1344,7 +1381,6 @@
     }
 
     // 2. Top Netflix Genre Pill Bar on Home
-    const board = isHome && document.querySelector('#app [class*="board-content-"]:not([class*="board-content-container"])');
     if (!board) return;
     let bar = board.querySelector(":scope > .dxtv-genre-bar");
     if (!bar) {

@@ -16,38 +16,28 @@ function configPathFor(pluginName: string): string {
     return join(Properties.pluginsPath, `${pluginName}${FILE_EXTENSIONS.PLUGIN_CONFIG}`);
 }
 
+export function readConfigObject(configPath: string): Record<string, unknown> {
+    if (!existsSync(configPath)) return {};
+    try {
+        const parsed = JSON.parse(readFileSync(configPath, 'utf-8'));
+        return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed as Record<string, unknown> : {};
+    } catch (err) {
+        logger.warn(`Corrupted plugin config at ${configPath}; falling back to defaults: ${(err as Error).message}`);
+        return {};
+    }
+}
+
 export function setupPluginSettingsAPI() {
     ipcMain.handle(ENHANCED_PLUGINS_API.GET_SETTING, (_, rawPluginName, key) => {
         const pluginFileName = safePluginName(rawPluginName);
-        if (!pluginFileName) return Promise.reject(new Error("Invalid plugin file name."));
-        const configPath = configPathFor(pluginFileName);
-        if(!existsSync(configPath)) {
-            logger.warn(`No config found for plugin ${pluginFileName}`);
-            writeFileSync(configPath, JSON.stringify({}));
-            return Promise.reject(new Error(`No config found (${pluginFileName}${FILE_EXTENSIONS.PLUGIN_CONFIG})!`));
-        }
-
-        let readConfig = readFileSync(configPath, 'utf-8');
-        let jsonConfig = JSON.parse(readConfig);
-
-        return jsonConfig[key] ?? null;
+        if (!pluginFileName || typeof key !== 'string') return Promise.reject(new Error("Invalid plugin file name."));
+        return readConfigObject(configPathFor(pluginFileName))[key] ?? null;
     });
 
     ipcMain.handle(ENHANCED_PLUGINS_API.GET_SETTINGS, (_, rawPluginName) => {
         const pluginFileName = safePluginName(rawPluginName);
         if (!pluginFileName) return Promise.reject(new Error("Invalid plugin file name."));
-        const configPath = configPathFor(pluginFileName);
-        if(!existsSync(configPath)) {
-            logger.warn(`No config found for plugin ${pluginFileName}`);
-            writeFileSync(configPath, JSON.stringify({}));
-            return Promise.reject(new Error(`No config found (${pluginFileName}${FILE_EXTENSIONS.PLUGIN_CONFIG})!`));
-        }
-
-        let readConfig = readFileSync(configPath, 'utf-8');
-        let jsonConfig = JSON.parse(readConfig);
-        if(!jsonConfig) return {};
-
-        return jsonConfig ?? {};
+        return readConfigObject(configPathFor(pluginFileName));
     });
 
     ipcMain.handle(ENHANCED_PLUGINS_API.SAVE_SETTING, (event, rawPluginName, key, value) => {
@@ -55,18 +45,9 @@ export function setupPluginSettingsAPI() {
         if (!pluginFileName || typeof key !== 'string') return false;
 
         const configPath = configPathFor(pluginFileName);
-        if(!existsSync(configPath)) {
-            logger.info(`No config found for plugin ${pluginFileName}. Creating new config file with setting ${key}.`);
-            writeFileSync(configPath, JSON.stringify({}));
-        }
-
-        let readConfig = readFileSync(configPath, 'utf-8');
-
-        let jsonConfig = JSON.parse(readConfig);
-        if (!jsonConfig) jsonConfig = {};
-
+        const jsonConfig = readConfigObject(configPath);
         jsonConfig[key] = value;
-        
+
         writeFileSync(configPath, JSON.stringify(jsonConfig, null, 2));
 
         const channel = `${ENHANCED_PLUGINS_API.ON_SETTINGS_SAVED}:${pluginFileName}`;

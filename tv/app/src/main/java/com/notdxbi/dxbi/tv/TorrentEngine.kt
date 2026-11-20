@@ -350,6 +350,25 @@ object TorrentEngine {
         }
     }
 
+    internal fun parseRange(range: String?, size: Long): LongArray? {
+        if (range == null || !range.startsWith("bytes=")) return longArrayOf(0L, size - 1, 0L)
+        if (size <= 0L) return null
+        val parts = range.removePrefix("bytes=").split("-")
+        val rawStart = parts.getOrNull(0)?.trim()?.toLongOrNull()
+        val rawEnd = parts.getOrNull(1)?.trim()?.toLongOrNull()
+        val start: Long
+        val end: Long
+        if (rawStart == null && rawEnd != null) {
+            if (rawEnd <= 0L) return null
+            start = maxOf(0L, size - rawEnd)
+            end = size - 1
+        } else {
+            start = rawStart ?: 0L
+            end = rawEnd?.coerceAtMost(size - 1) ?: (size - 1)
+        }
+        return if (start < 0L || start >= size || start > end) null else longArrayOf(start, end, 1L)
+    }
+
     private class Server : NanoHTTPD("127.0.0.1", 0) {
         override fun serve(session: IHTTPSession): Response {
             val prefix = "/$serverToken"
@@ -376,18 +395,11 @@ object TorrentEngine {
             for (i in 0 until 50) { if (a.path.exists()) break; Thread.sleep(100) }
 
             val size = a.size
-            var start = 0L
-            var end = size - 1
-            val range = session.headers["range"]
-            val ranged = range != null && range.startsWith("bytes=")
-            if (ranged) {
-                val parts = range!!.removePrefix("bytes=").split("-")
-                start = parts[0].toLongOrNull() ?: 0L
-                end = parts.getOrNull(1)?.toLongOrNull()?.coerceAtMost(size - 1) ?: (size - 1)
-                if (start >= size) {
-                    return newFixedLengthResponse(Response.Status.RANGE_NOT_SATISFIABLE, MIME_PLAINTEXT, "").apply { addHeader("Content-Range", "bytes */$size") }
-                }
-            }
+            val parsed = parseRange(session.headers["range"], size)
+                ?: return newFixedLengthResponse(Response.Status.RANGE_NOT_SATISFIABLE, MIME_PLAINTEXT, "").apply { addHeader("Content-Range", "bytes */$size") }
+            val start = parsed[0]
+            val end = parsed[1]
+            val ranged = parsed[2] == 1L
             val length = end - start + 1
             val response = newFixedLengthResponse(if (ranged) Response.Status.PARTIAL_CONTENT else Response.Status.OK, mime(a.path.name), PieceStream(a, start, end), length)
             response.addHeader("Accept-Ranges", "bytes")

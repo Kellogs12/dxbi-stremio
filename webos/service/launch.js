@@ -16,6 +16,8 @@ var path = require('path');
 var url = require('url');
 
 var PORT = parseInt(process.env.PORT || '8080', 10);
+var APP_VERSION = '2.37.1';
+try { APP_VERSION = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'app', 'appinfo.json'), 'utf8')).version || APP_VERSION; } catch (_) {}
 var ready = false;
 var pendingMessages = [];
 
@@ -69,7 +71,7 @@ function fetchStremioHtml(cb, targetUrl, depth) {
   var currentDepth = depth || 0;
   if (currentDepth > 3) return cb(new Error('Too many redirects'));
 
-  var req = https.get(currentUrl, { headers: { 'User-Agent': 'Mozilla/5.0 (SMART-TV; Linux; Tizen 6.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36 hank-tv/2.35.1 (LG webOS)' } }, function(res) {
+  var req = https.get(currentUrl, { headers: { 'User-Agent': 'Mozilla/5.0 (SMART-TV; Linux; Tizen 6.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36 hank-tv/' + APP_VERSION + ' (LG webOS)' } }, function(res) {
     if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
       var nextUrl = url.resolve(currentUrl, res.headers.location);
       return fetchStremioHtml(cb, nextUrl, currentDepth + 1);
@@ -162,7 +164,9 @@ var server = http.createServer(function(req, res) {
     if (assetPath) {
       var contentType = assetName.endsWith('.css') ? 'text/css; charset=utf-8' : 'application/javascript; charset=utf-8';
       res.writeHead(200, { 'Content-Type': contentType, 'Access-Control-Allow-Origin': '*' });
-      return fs.createReadStream(assetPath).pipe(res);
+      var stream = fs.createReadStream(assetPath);
+      stream.on('error', function() { if (!res.headersSent) res.writeHead(404); res.destroy(); });
+      return stream.pipe(res);
     }
   }
 

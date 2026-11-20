@@ -1,5 +1,5 @@
-import { fork, execSync, execFileSync } from "child_process";
-import * as unzipper from "unzipper";
+import { fork, execFile, execSync, execFileSync } from "child_process";
+import { promisify } from "util";
 import { createWriteStream, existsSync, mkdirSync, chmodSync, unlinkSync, readFileSync, writeFileSync, statSync, renameSync, rmSync } from "fs";
 import { basename, join } from "path";
 import { getLogger } from "./logger";
@@ -137,41 +137,46 @@ for (const name of ["spawn", "spawnSync", "execFile", "execFileSync", "exec", "e
         return downloadedPath;
     }
 
+    private static openHttps(url: string, onResponse: (res: import("http").IncomingMessage) => void, onError: (err: Error) => void, redirects = 0): void {
+        let parsed: URL;
+        try { parsed = new URL(url); } catch (err) { onError(err as Error); return; }
+        if (parsed.protocol !== "https:") { onError(new Error(`Refusing non-HTTPS URL: ${url}`)); return; }
+        if (redirects > 5) { onError(new Error(`Too many redirects for ${url}`)); return; }
+
+        try {
+            https.get(parsed.toString(), { headers: { "User-Agent": "dxbi" } }, (res) => {
+                if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+                    res.resume();
+                    const redirectUrl = new URL(res.headers.location, parsed).toString();
+                    this.logger.info(`Following redirect to: ${redirectUrl}`);
+                    this.openHttps(redirectUrl, onResponse, onError, redirects + 1);
+                    return;
+                }
+                onResponse(res);
+            }).on("error", onError);
+        } catch (err) {
+            onError(err as Error);
+        }
+    }
+
     public static async downloadFile(url: string, dest: string): Promise<void> {
         return new Promise((resolve, reject) => {
             const file = createWriteStream(dest);
-
-            const request = (downloadUrl: string) => {
-                https.get(downloadUrl, { headers: { "User-Agent": "dxbi" } }, (res) => {
-                    // Handle redirects (GitHub releases use redirects)
-                    if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-                        const redirectUrl = new URL(res.headers.location, downloadUrl).toString();
-                        this.logger.info(`Following redirect to: ${redirectUrl}`);
-                        request(redirectUrl);
-                        return;
-                    }
-
-                    if (res.statusCode !== 200) {
-                        file.close();
-                        reject(new Error(`Failed to download ${url}: HTTP ${res.statusCode}`));
-                        return;
-                    }
-
-                    res.pipe(file);
-                    file.on("finish", () => {
-                        file.close(() => resolve());
-                    });
-                    res.on("error", (err) => {
-                        file.close();
-                        reject(err);
-                    });
-                }).on("error", (err) => {
-                    file.close();
-                    reject(err);
-                });
+            const fail = (err: Error) => {
+                file.destroy();
+                reject(err);
             };
-
-            request(url);
+            file.on("error", fail);
+            this.openHttps(url, (res) => {
+                if (res.statusCode !== 200) {
+                    res.resume();
+                    fail(new Error(`Failed to download ${url}: HTTP ${res.statusCode}`));
+                    return;
+                }
+                res.pipe(file);
+                file.on("finish", () => file.close(() => resolve()));
+                res.on("error", fail);
+            }, fail);
         });
     }
 
@@ -179,6 +184,8 @@ for (const name of ["spawn", "spawnSync", "execFile", "execFileSync", "exec", "e
     public static async downloadAndExtractFFmpeg(targetDir: string = this.streamingServerDir): Promise<boolean> {
         const archiveUrl = this.getFFmpegUrl();
         const archivePath = join(targetDir, (process.platform == "win32" || process.platform == "darwin") ? "ffmpeg-release.zip" : "ffmpeg-release.tar.xz");
+        const run = promisify(execFile);
+        const untar = (file: string, opts: object = { encoding: "utf8" }) => run("tar", ["-xf", file, "-C", targetDir], opts);
 
         const ffmpegPath = process.platform == "win32"
             ? join(targetDir, "ffmpeg.exe")
@@ -193,10 +200,10 @@ for (const name of ["spawn", "spawnSync", "execFile", "execFileSync", "exec", "e
             this.logger.info("FFmpeg archive downloaded. Extracting...");
 
             if (process.platform === "linux") {
-                const listOutput = execFileSync("tar", ["-tf", archivePath], { encoding: "utf8" });
+                const { stdout: listOutput } = await run("tar", ["-tf", archivePath], { encoding: "utf8" });
                 const extractDir = listOutput.split(/\r?\n/)[0].trim().split("/")[0];
 
-                execFileSync("tar", ["-xf", archivePath, "-C", targetDir], { encoding: "utf8" });
+                await untar(archivePath);
 
                 const extractedDir = join(targetDir, extractDir);
                 renameSync(join(extractedDir, "ffmpeg"), ffmpegPath);
@@ -211,7 +218,7 @@ for (const name of ["spawn", "spawnSync", "execFile", "execFileSync", "exec", "e
                 this.logger.info("FFmpeg and FFprobe extracted successfully.");
                 return true;
             } else if (process.platform === "darwin") {
-                execFileSync("unzip", ["-o", archivePath, "-d", targetDir], { encoding: "utf8" });
+                await untar(archivePath);
                 chmodSync(ffmpegPath, 0o755);
                 unlinkSync(archivePath);
 
@@ -221,35 +228,28 @@ for (const name of ["spawn", "spawnSync", "execFile", "execFileSync", "exec", "e
                 await this.downloadFile(this.getMacOSFFprobeUrl(), ffprobeArchivePath);
                 this.logger.info("FFprobe archive downloaded. Extracting...");
                 
-                execFileSync("unzip", ["-o", ffprobeArchivePath, "-d", targetDir], { encoding: "utf8" });
+                await untar(ffprobeArchivePath);
                 chmodSync(ffprobePath, 0o755);
                 unlinkSync(ffprobeArchivePath);
                 return true;
             } else if (process.platform === "win32") {
-                // Handle Windows zip file natively to avoid PowerShell module issues
-                const fs = require('fs');
-                await new Promise<void>((resolve, reject) => {
-                    fs.createReadStream(archivePath)
-                        .pipe(unzipper.Extract({ path: targetDir }))
-                        .on('close', resolve)
-                        .on('error', reject);
-                });
-                
+                await untar(archivePath, { windowsHide: true });
+
                 // The archive unpacks into a folder named like the archive (win64 or winarm64 build)
                 const extDir = join(targetDir, basename(new URL(archiveUrl).pathname, ".zip"));
                 const ffmpegSource = join(extDir, "bin", "ffmpeg.exe");
                 const ffprobeSource = join(extDir, "bin", "ffprobe.exe");
-                const extracted = fs.existsSync(ffmpegSource) && fs.existsSync(ffprobeSource);
+                const extracted = existsSync(ffmpegSource) && existsSync(ffprobeSource);
 
                 if (extracted) {
-                    fs.renameSync(ffmpegSource, ffmpegPath);
-                    fs.renameSync(ffprobeSource, ffprobePath);
+                    renameSync(ffmpegSource, ffmpegPath);
+                    renameSync(ffprobeSource, ffprobePath);
                 } else {
                     this.logger.error(`FFmpeg archive didn't contain ${ffmpegSource} and ${ffprobeSource}.`);
                 }
-                
-                if (fs.existsSync(extDir)) {
-                    fs.rmSync(extDir, { recursive: true, force: true });
+
+                if (existsSync(extDir)) {
+                    rmSync(extDir, { recursive: true, force: true });
                 }
 
                 unlinkSync(archivePath);
@@ -334,22 +334,17 @@ for (const name of ["spawn", "spawnSync", "execFile", "execFileSync", "exec", "e
 
     private static async fetchText(url: string): Promise<string> {
         return new Promise((resolve, reject) => {
-            const request = (fetchUrl: string) => {
-                https.get(fetchUrl, { headers: { "User-Agent": "dxbi" } }, (res) => {
-                    if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-                        request(new URL(res.headers.location, fetchUrl).toString());
-                        return;
-                    }
-                    if (res.statusCode !== 200) {
-                        reject(new Error(`HTTP ${res.statusCode}`));
-                        return;
-                    }
-                    let data = '';
-                    res.on('data', chunk => data += chunk);
-                    res.on('end', () => resolve(data));
-                }).on("error", err => reject(err));
-            };
-            request(url);
+            this.openHttps(url, (res) => {
+                if (res.statusCode !== 200) {
+                    res.resume();
+                    reject(new Error(`HTTP ${res.statusCode}`));
+                    return;
+                }
+                let data = '';
+                res.on('data', chunk => data += chunk);
+                res.on('end', () => resolve(data));
+                res.on('error', reject);
+            }, reject);
         });
     }
 

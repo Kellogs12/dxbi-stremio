@@ -13,7 +13,7 @@
     var rawUA = navigator.userAgent || "";
     if (rawUA.indexOf("hank-tv/") === -1 && rawUA.indexOf("dxbi-tv/") === -1) {
       Object.defineProperty(navigator, "userAgent", {
-        get: function() { return rawUA + " hank-tv/2.35.1 (LG webOS)"; },
+        get: function() { return rawUA + " hank-tv/2.37.1 (LG webOS)"; },
         configurable: true
       });
     }

@@ -28,6 +28,7 @@ edit("dxbi.plugin.js", (s) =>
       /^(\s*\*\s*@updateUrl\s+).+$/m,
       "$1https://raw.githubusercontent.com/Kellogs12/dxbi-stremio/main/dxbi.plugin.js"
     )
+    .replace(/"https:\/\/github\.com\/notdxbi\/dxbi-stremio#install"/g, '"https://github.com/Kellogs12/dxbi-stremio#install"')
     .replace(/\bThe dx\.bi look is built in\./g, "The Hank look is built in.")
 );
 

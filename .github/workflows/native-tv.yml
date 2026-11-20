@@ -48,7 +48,8 @@ jobs:
 
       - name: Download Official Stremio Android TV APK
         run: |
-          curl -sL -o stremio-tv-arm7.apk "https://dl.strem.io/android/v1.10.4-androidTV/com.stremio.one-1.10.4-31048580-armeabi-v7a.apk"
+          curl -fsSL -o stremio-tv-arm7.apk "https://dl.strem.io/android/v1.10.4-androidTV/com.stremio.one-1.10.4-31048580-armeabi-v7a.apk"
+          echo "e18a5405bb53e12a903ff477457318b8f8d3c8e1995e0a4c3ff5d8893d1ccf0b  stremio-tv-arm7.apk" | sha256sum -c -
           echo "Downloaded APK size: $(ls -lh stremio-tv-arm7.apk | awk '{print $5}')"
 
       - name: Decompile APK
